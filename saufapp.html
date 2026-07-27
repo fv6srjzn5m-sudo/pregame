@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SaufApp 🎉</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0B0F;
+    --surface: #16161D;
+    --surface-alt: #1F1F29;
+    --pink: #FF2E92;
+    --purple: #9D4EDD;
+    --blue: #3EE6FF;
+    --green: #39FF88;
+    --yellow: #FFE23E;
+    --muted: #7A7A8C;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overscroll-behavior: none;
+  }
+  h1, h2, h3, .display { font-family: 'Space Grotesk', sans-serif; }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 20px 32px;
+    position: relative;
+  }
+
+  .screen { display: none; flex: 1; flex-direction: column; animation: fadeIn 0.25s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .btn {
+    width: 100%;
+    padding: 18px 24px;
+    border-radius: 18px;
+    border: 1px solid transparent;
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+    -webkit-user-select: none; user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--pink); color: #0B0B0F; }
+  .btn-secondary { background: var(--blue); color: #0B0B0F; }
+  .btn-ghost { background: transparent; color: white; border-color: rgba(255,255,255,0.2); }
+  .btn-danger { background: #FF4D4D; color: white; }
+  .btn-yellow { background: var(--yellow); color: #0B0B0F; }
+  .btn-purple { background: var(--purple); color: white; }
+  .btn-green { background: var(--green); color: #0B0B0F; }
+  .btn[disabled] { opacity: 0.35; pointer-events: none; }
+  .btn + .btn { margin-top: 12px; }
+  .btn-sm { padding: 12px 16px; font-size: 14px; border-radius: 14px; }
+
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+  .row { display: flex; align-items: center; justify-content: space-between; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .muted { color: var(--muted); }
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  input[type="text"], select {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    color: white;
+    font-size: 17px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    font-family: 'Inter', sans-serif;
+  }
+  input[type="text"]:focus, select:focus { outline: none; border-color: var(--blue); }
+  input::placeholder { color: var(--muted); }
+
+  /* ---- SPLASH ---- */
+  #screen-splash { align-items: center; justify-content: center; text-align: center; }
+  .logo-word { font-size: 52px; font-weight: 700; line-height: 1; letter-spacing: -1px; }
+  .logo-pink { color: var(--pink); }
+  .logo-blue { color: var(--blue); margin-top: -6px; }
+  .tagline { color: var(--muted); letter-spacing: 4px; font-size: 12px; margin-top: 18px; }
+
+  /* ---- HOME ---- */
+  .home-header { margin: 12px 0 24px; }
+  .home-header h1 { font-size: 32px; margin: 0 0 6px; }
+  .player-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .player-chip {
+    background: var(--surface); border-radius: 999px; padding: 8px 14px;
+    font-size: 14px; display: flex; align-items: center; gap: 6px;
+  }
+  .player-chip .sips { color: var(--yellow); font-weight: 700; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ---- ADD PLAYERS ---- */
+  .player-list { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; flex: 1; overflow-y: auto; }
+  .player-row {
+    background: var(--surface); border-radius: 16px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .player-row .name { font-weight: 600; }
+  .remove-btn { color: var(--muted); font-size: 22px; padding: 0 6px; cursor: pointer; }
+  .add-row { display: flex; gap: 10px; margin-bottom: 8px; }
+  .add-row input { flex: 1; }
+  .add-row button {
+    width: 56px; border-radius: 16px; border: none; background: var(--green);
+    color: #0B0B0F; font-size: 26px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ---- GAME SELECT / CATEGORY SELECT: farbige Kachel-Grids ---- */
+  .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .tile-card {
+    position: relative; border-radius: 24px; padding: 16px; cursor: pointer;
+    min-height: 152px; display: flex; flex-direction: column; justify-content: flex-end;
+    overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.4);
+    transition: transform 0.1s ease;
+  }
+  .tile-card:active { transform: scale(0.95); }
+  .tile-card::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent 62%);
+    pointer-events: none;
+  }
+  .tile-card > * { position: relative; z-index: 1; }
+  .tile-icon { font-size: 38px; position: absolute; top: 14px; right: 14px; z-index: 1; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.35)); }
+  .tile-card h3 { margin: 0 0 3px; font-size: 17px; color: white; font-weight: 800; }
+  .tile-card p { margin: 0; font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.35; }
+
+  .tile-categories    { background: linear-gradient(135deg, #FFE23E, #FF8C42); }
+  .tile-maexchen      { background: linear-gradient(135deg, #9D4EDD, #FF2E92); }
+  .tile-seveneleven   { background: linear-gradient(135deg, #3EE6FF, #0091AD); }
+  .tile-busfahrer     { background: linear-gradient(135deg, #39FF88, #3EE6FF); }
+  .tile-sprichwoerter { background: linear-gradient(135deg, #FF2E92, #9D4EDD); }
+
+  .tile-cat-0 { background: linear-gradient(135deg, #3EE6FF, #9D4EDD); }
+  .tile-cat-1 { background: linear-gradient(135deg, #9D4EDD, #FF2E92); }
+  .tile-cat-2 { background: linear-gradient(135deg, #39FF88, #FFE23E); }
+  .tile-cat-3 { background: linear-gradient(135deg, #FFE23E, #FF2E92); }
+  .tile-cat-4 { background: linear-gradient(135deg, #39FF88, #3EE6FF); }
+  .tile-cat-5 { background: linear-gradient(135deg, #FF2E92, #9D4EDD); }
+  .tile-cat-6 { background: linear-gradient(135deg, #3EE6FF, #39FF88); }
+  .tile-cat-7 { background: linear-gradient(135deg, #FFE23E, #39FF88); }
+  .tile-random { background: conic-gradient(from 180deg, #FF2E92, #9D4EDD, #3EE6FF, #39FF88, #FFE23E, #FF2E92); }
+
+  /* ---- GAME SELECT (Fallback-Klasse, falls noch referenziert) ---- */
+  .game-card {
+    background: var(--surface); border-radius: 20px; padding: 20px;
+    margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer;
+  }
+  .game-card:active { transform: scale(0.98); }
+  .game-card .icon { font-size: 32px; margin-bottom: 8px; }
+  .game-card h3 { margin: 0 0 4px; font-size: 19px; }
+  .game-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+  /* ---- SHARED GAME TOP BAR ---- */
+  .game-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .current-player { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center;
+    justify-content: center; font-weight: 800; font-size: 17px; color: #0B0B0F; flex-shrink: 0;
+  }
+  .score-pill { font-size: 12px; color: var(--muted); }
+  .timer-ring {
+    width: 64px; height: 64px; border-radius: 50%; border: 4px solid var(--blue);
+    display: flex; align-items: center; justify-content: center; background: var(--surface);
+    font-weight: 800; font-size: 22px; transition: border-color 0.2s ease;
+  }
+  .timer-ring.urgent { border-color: var(--pink); color: var(--pink); }
+
+  .category-block { text-align: center; margin: 22px 0 16px; }
+  .category-emoji { font-size: 52px; margin-bottom: 6px; }
+  .category-title { font-size: 26px; font-weight: 700; }
+
+  .feedback-box {
+    background: var(--surface-alt); border: 1px solid rgba(157,78,221,0.4);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 16px;
+  }
+  .feedback-box .label { color: var(--purple); font-weight: 700; font-size: 13px; }
+  .feedback-box .comment { margin-top: 6px; line-height: 1.4; }
+  .feedback-box.penalty { border-color: rgba(255,77,77,0.5); }
+  .feedback-box.penalty .label { color: #FF4D4D; }
+  .sips-badge {
+    display: inline-block; margin-top: 8px; background: #FF4D4D; color: white;
+    font-weight: 800; padding: 4px 10px; border-radius: 999px; font-size: 13px;
+  }
+
+  .answers-wrap { margin-top: 16px; }
+  .answers-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .answer-chip { background: var(--surface); padding: 6px 12px; border-radius: 999px; font-size: 13px; color: rgba(255,255,255,0.65); }
+
+  .spacer { flex: 1; }
+
+  /* ---- DICE ---- */
+  .dice-row { display: flex; justify-content: center; gap: 16px; margin: 20px 0; }
+  .die {
+    width: 76px; height: 76px; background: white; color: #0B0B0F; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 800;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+  }
+  .secret-note {
+    text-align: center; color: var(--yellow); font-size: 13px; margin-top: -8px; margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .target-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0; }
+  .target-chip {
+    background: var(--surface); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 999px;
+    padding: 10px 18px; font-weight: 700; cursor: pointer;
+  }
+  .target-chip:active { transform: scale(0.95); }
+
+  /* ---- RESULTS ---- */
+  .winner-card {
+    background: var(--surface-alt); border: 1px solid var(--yellow); border-radius: 20px;
+    padding: 26px; text-align: center; margin: 16px 0;
+  }
+  .winner-card .trophy { font-size: 40px; }
+  .winner-card .name { font-size: 24px; font-weight: 700; margin-top: 4px; }
+  .winner-card .pts { color: var(--yellow); margin-top: 4px; }
+  .winner-card .comment { color: rgba(255,255,255,0.75); margin-top: 14px; font-size: 15px; }
+
+  .result-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); padding: 14px 16px; border-radius: 14px; margin-bottom: 10px;
+  }
+  .result-row .pts { color: var(--blue); font-family: monospace; font-weight: 700; }
+  .result-row .sips { color: #FF4D4D; font-family: monospace; font-weight: 700; margin-left: 10px; }
+
+  .back-link { color: var(--muted); font-size: 14px; margin-bottom: 6px; cursor: pointer; }
+
+  /* ---- CARDS (Busfahrer) ---- */
+  .card-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
+  .card-slot {
+    width: 56px; height: 78px; background: var(--surface); border: 1.5px dashed rgba(255,255,255,0.15);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800;
+  }
+  .card-slot.filled { background: white; border-style: solid; border-color: rgba(0,0,0,0.05); }
+  .card-slot.red { color: #E23; }
+  .card-slot.black { color: #111; }
+  .card-slot.current { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue); }
+  .qa-title { text-align: center; font-size: 19px; font-weight: 700; margin: 18px 0 4px; }
+  .qa-sub { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+  .pyramid-wrap { display: flex; flex-direction: column-reverse; align-items: center; gap: 8px; margin: 16px 0; }
+  .pyramid-row { display: flex; gap: 8px; }
+  .pyramid-card {
+    width: 42px; height: 58px; border-radius: 8px; background: var(--surface);
+    border: 1.5px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; position: relative;
+  }
+  .pyramid-card.revealed { background: white; color: #111; }
+  .pyramid-card.current-reveal { box-shadow: 0 0 0 3px var(--yellow); }
+  .pyramid-row-label { position: absolute; top: -18px; font-size: 10px; color: var(--muted); }
+
+  /* ---- MIC (Sprichwörter) ---- */
+  .proverb-box {
+    background: var(--surface-alt); border-radius: 20px; padding: 26px 20px; text-align: center; margin: 20px 0;
+  }
+  .proverb-start { font-size: 22px; font-weight: 700; line-height: 1.3; }
+  .proverb-ellipsis { color: var(--muted); font-size: 22px; }
+  .mic-btn {
+    width: 96px; height: 96px; border-radius: 50%; background: var(--pink); border: none;
+    display: flex; align-items: center; justify-content: center; font-size: 38px; margin: 20px auto;
+    cursor: pointer; box-shadow: 0 0 0 0 rgba(255,46,146,0.5);
+  }
+  .mic-btn.recording { background: #FF4D4D; animation: pulse 1.2s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.5); }
+    70% { box-shadow: 0 0 0 18px rgba(255,77,77,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,77,77,0); }
+  }
+  audio { width: 100%; margin-top: 14px; }
+
+  ::-webkit-scrollbar { display: none; }
+
+  /* ---- CUSTOM MODAL (statt confirm()/alert() – funktioniert überall zuverlässig) ---- */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    z-index: 999; align-items: flex-end; justify-content: center;
+  }
+  #modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--surface-alt); width: 100%; max-width: 480px; border-radius: 24px 24px 0 0;
+    padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .modal-message { font-size: 17px; line-height: 1.4; margin-bottom: 20px; text-align: center; }
+
+  /* ---- PENALTY OVERLAY (direkte Strafschluck-Bestätigung) ---- */
+  #penalty-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  }
+  #penalty-overlay.active { display: flex; }
+  .penalty-box {
+    background: linear-gradient(160deg, #FF2E92, #9D4EDD); border-radius: 28px; padding: 36px 28px;
+    text-align: center; width: 88%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .penalty-emoji { font-size: 56px; margin-bottom: 6px; }
+  .penalty-player { font-size: 22px; font-weight: 800; color: white; }
+  .penalty-sips-big { font-size: 44px; font-weight: 900; color: white; margin: 6px 0 4px; }
+  .penalty-message { color: rgba(255,255,255,0.85); font-size: 14px; margin-bottom: 22px; }
+  .penalty-ok-btn {
+    background: white; color: #16161D; font-weight: 800; padding: 16px; border-radius: 16px;
+    font-size: 16px; cursor: pointer;
+  }
+
+  /* ---- GAME BACKGROUNDS (thematischer Hintergrund statt Foto, urheberrechtsfrei) ---- */
+  .screen[id^="screen-game-"] { position: relative; overflow: hidden; }
+  .screen[id^="screen-game-"]::before {
+    content: ''; position: absolute; inset: 0; z-index: 0; opacity: 0.16; pointer-events: none;
+    font-size: 260px; display: flex; align-items: center; justify-content: center; transform: rotate(-8deg) scale(1.3);
+  }
+  .screen[id^="screen-game-"] > *:not(.back-link) { position: relative; z-index: 1; }
+  #screen-game-categories { background: radial-gradient(circle at 30% 0%, var(--cat-glow, rgba(255,226,62,0.12)), transparent 60%), var(--bg); }
+  #screen-game-categories::before { content: attr(data-bg-icon); }
+  #screen-game-maexchen { background: radial-gradient(circle at 70% 0%, rgba(157,78,221,0.16), transparent 60%), var(--bg); }
+  #screen-game-maexchen::before { content: '🎲'; }
+  #screen-game-seveneleven { background: radial-gradient(circle at 30% 0%, rgba(62,230,255,0.14), transparent 60%), var(--bg); }
+  #screen-game-seveneleven::before { content: '🎯'; }
+  #screen-game-busfahrer { background: radial-gradient(circle at 70% 0%, rgba(57,255,136,0.14), transparent 60%), var(--bg); }
+  #screen-game-busfahrer::before { content: '🚌'; }
+  #screen-game-sprichwoerter { background: radial-gradient(circle at 30% 0%, rgba(255,46,146,0.14), transparent 60%), var(--bg); }
+  #screen-game-sprichwoerter::before { content: '🗣️'; }
+
+  /* ---- BUDDY CHARAKTER (betrunkener Kumpel, poppt bei Strafen & Siegen auf) ---- */
+  #buddy-container {
+    position: fixed; bottom: 18px; right: 14px; z-index: 3000;
+    display: flex; flex-direction: column; align-items: flex-end;
+    pointer-events: none; opacity: 0; transform: translateY(24px) scale(0.7);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #buddy-container.active { opacity: 1; transform: translateY(0) scale(1); }
+  .buddy-bubble {
+    background: white; color: #16161D; font-weight: 700; font-size: 13.5px; line-height: 1.3;
+    padding: 10px 13px; border-radius: 16px; border-bottom-right-radius: 4px;
+    max-width: 190px; margin-bottom: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+  }
+  .buddy-avatar {
+    width: 58px; height: 58px; border-radius: 50%; font-size: 30px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--yellow), var(--pink));
+    box-shadow: 0 6px 22px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.25);
+    animation: buddyPop 0.5s cubic-bezier(.34,1.56,.64,1);
+  }
+  .buddy-avatar.laughing { animation: buddyLaugh 0.5s ease infinite; }
+  @keyframes buddyPop { 0% { transform: scale(0); } 60% { transform: scale(1.2); } 100% { transform: scale(1); } }
+  @keyframes buddyLaugh {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-8deg) scale(1.06); }
+    75% { transform: rotate(8deg) scale(1.06); }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- SPLASH -->
+  <div class="screen active" id="screen-splash">
+    <div class="logo-word logo-pink">Sauf</div>
+    <div class="logo-word logo-blue">App</div>
+    <div class="tagline">PARTY. LAUTER. ECHTER.</div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen" id="screen-home">
+    <div class="home-header">
+      <h1>Willkommen zurück 🎉</h1>
+      <p class="muted">Euer KI-Spielleiter wartet schon.</p>
+    </div>
+    <div id="home-player-summary"></div>
+    <div class="spacer"></div>
+    <div class="stack">
+      <div class="btn btn-primary" onclick="goTo('players')">Spieler verwalten</div>
+      <div class="btn btn-secondary" onclick="goTo('gameselect')">Spiel auswählen</div>
+      <div class="btn btn-ghost btn-sm" onclick="goTo('voice-settings')">🔊 Kumpel-Stimme einstellen</div>
+      <div class="btn btn-ghost btn-sm" onclick="resetAllStats()">Punkte &amp; Schlucke zurücksetzen</div>
+    </div>
+  </div>
+
+  <!-- VOICE SETTINGS -->
+  <div class="screen" id="screen-voice-settings">
+    <div class="back-link" onclick="goTo('home')">&larr; Zurück</div>
+    <h2 style="margin-top:4px;">Kumpel-Stimme</h2>
+    <p class="muted" style="margin-top:-4px;">
+      Wähle hier, welche auf deinem Handy installierte Stimme der Kumpel benutzen soll.
+      Falls alle Stimmen robotisch klingen: geh in die iPhone-Einstellungen unter
+      „Bedienungshilfen &rarr; Gesprochener Inhalt &rarr; Stimmen &rarr; Deutsch" und lade dort eine
+      „Erweitert/Enhanced" oder „Siri"-Stimme herunter – das ist der einzige Weg zu einer
+      wirklich natürlichen Stimme, das kann die App selbst nicht ändern.
+    </p>
+    <div id="voice-select-wrap" style="margin-top:16px;">
+      <select id="voice-select" style="width:100%; padding:14px; border-radius:12px; background:var(--surfaceAlt); color:#fff; border:1px solid rgba(255,255,255,0.15); font-size:15px;"></select>
+    </div>
+    <div class="stack" style="margin-top:16px;">
+      <div class="btn btn-secondary" onclick="testBuddyVoice()">🔊 Stimme testen</div>
+      <div class="btn btn-primary" onclick="saveBuddyVoice()">Als Kumpel-Stimme speichern</div>
+    </div>
+    <p class="muted" id="voice-save-confirm" style="margin-top:10px; display:none;">Gespeichert ✅</p>
+  </div>
+
+  <!-- ADD PLAYERS -->
+  <div class="screen" id="screen-players">
+    <h2>Mitspieler</h2>
+    <p class="muted" style="margin-top:-8px;">Mindestens 2 Spieler für eine Runde.</p>
+    <div class="add-row">
+      <input type="text" id="new-player-input" placeholder="Name eingeben..." maxlength="16">
+      <button onclick="addPlayer()">+</button>
+    </div>
+    <div class="player-list" id="player-list"></div>
+    <div class="stack">
+      <div class="btn btn-primary" onclick="goTo('gameselect')">Weiter zur Spielauswahl</div>
+      <div class="btn btn-ghost" onclick="goTo('home')">Zurück</div>
+    </div>
+  </div>
+
+  <!-- GAME SELECT -->
+  <div class="screen" id="screen-gameselect">
+    <div class="back-link" onclick="goTo('home')">&larr; Zurück</div>
+    <h2 style="margin-top:4px;">Spiel auswählen</h2>
+    <div class="tile-grid">
+      <div class="tile-card tile-categories" onclick="launchGame('categories')">
+        <div class="tile-icon">🗂️</div>
+        <h3>Kategorien</h3>
+        <p>Begriffe nennen, bevor die Zeit abläuft.</p>
+      </div>
+      <div class="tile-card tile-maexchen" onclick="launchGame('maexchen')">
+        <div class="tile-icon">🎲</div>
+        <h3>Mäxchen</h3>
+        <p>Würfeln, lügen, glauben oder zweifeln.</p>
+      </div>
+      <div class="tile-card tile-seveneleven" onclick="launchGame('seveneleven')">
+        <div class="tile-icon">🎯</div>
+        <h3>7-11-Paar</h3>
+        <p>Zwei Würfel, automatische Schlucke.</p>
+      </div>
+      <div class="tile-card tile-busfahrer" onclick="launchGame('busfahrer')">
+        <div class="tile-icon">🚌</div>
+        <h3>Busfahrer</h3>
+        <p>Pyramide &amp; Finale – wer fährt den Bus?</p>
+      </div>
+      <div class="tile-card tile-sprichwoerter" onclick="launchGame('sprichwoerter')">
+        <div class="tile-icon">🗣️</div>
+        <h3>Sprichwörter</h3>
+        <p>Anfang hören, Ende per Mikro zu Ende sprechen.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen" id="screen-category-select">
+    <div class="back-link" onclick="goTo('gameselect')">&larr; Zurück</div>
+    <h2 style="margin-top:4px;">Kategorie wählen</h2>
+    <p class="muted" style="margin-top:-4px;">Wählt eine feste Kategorie oder lasst sie zufällig durchmischen.</p>
+    <div id="category-select-list" style="margin-top:14px;"></div>
+  </div>
+
+  <!-- CATEGORY GAME -->
+  <div class="screen" id="screen-game-categories" data-bg-icon="🎙️">
+    <div class="back-link" onclick="confirmLeaveGame()">&larr; Spiel verlassen</div>
+    <div class="game-top">
+      <div class="current-player">
+        <div class="avatar" id="cat-avatar"></div>
+        <div>
+          <div id="cat-player-name" style="font-weight:700;"></div>
+          <div class="score-pill" id="cat-player-score"></div>
+        </div>
+      </div>
+      <div class="timer-ring" id="cat-timer-ring">20</div>
+    </div>
+
+    <div class="category-block">
+      <div class="category-emoji" id="cat-emoji">🎲</div>
+      <div class="category-title" id="cat-title">Kategorie</div>
+    </div>
+
+    <div class="feedback-box" id="cat-feedback-box" style="display:none;">
+      <div class="label" id="cat-feedback-label">🎙️ Spielleiter</div>
+      <div class="comment" id="cat-feedback-comment"></div>
+      <div id="cat-feedback-sips"></div>
+    </div>
+
+    <div id="cat-in-round">
+      <input type="text" id="cat-answer-input" placeholder="Antwort eingeben..." autocomplete="off">
+      <div class="btn btn-secondary" onclick="Categories.submitAnswer()" style="margin-top:12px;">Antwort abgeben</div>
+      <div class="btn btn-ghost" onclick="Categories.skipTurn()">Passen</div>
+    </div>
+
+    <div class="answers-wrap" id="cat-answers-wrap" style="display:none;">
+      <span class="muted">Schon genannt:</span>
+      <div class="answers-chips" id="cat-answers-chips"></div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="btn btn-danger" onclick="endToResults()">Spiel beenden &amp; Ergebnisse</div>
+  </div>
+
+  <!-- MÄXCHEN GAME -->
+  <div class="screen" id="screen-game-maexchen">
+    <div class="back-link" onclick="confirmLeaveGame()">&larr; Spiel verlassen</div>
+    <div class="game-top">
+      <div class="current-player">
+        <div class="avatar" id="max-avatar"></div>
+        <div>
+          <div id="max-player-name" style="font-weight:700;"></div>
+          <div class="score-pill" id="max-player-role"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="max-step-roll">
+      <p class="muted" style="text-align:center; margin-top:20px;">Gib das Handy <b id="max-roller-name-1"></b>. Alle anderen schauen weg!</p>
+      <div class="btn btn-primary" onclick="Maexchen.revealRoll()">Geheim würfeln 🎲</div>
+    </div>
+
+    <div id="max-step-secret" style="display:none;">
+      <div class="dice-row">
+        <div class="die" id="max-die1">?</div>
+        <div class="die" id="max-die2">?</div>
+      </div>
+      <div class="secret-note">Nur für dich sichtbar – nicht zeigen!</div>
+      <p class="muted" style="text-align:center;">Dein Wurf: <b id="max-actual-combo"></b></p>
+      <div class="btn btn-secondary" onclick="Maexchen.goToAnnounce()">Weiter zur Ansage</div>
+    </div>
+
+    <div id="max-step-announce" style="display:none;">
+      <p style="text-align:center; margin-top:10px;">Was sagst du an? (lügen erlaubt!)</p>
+      <select id="max-announce-select"></select>
+      <div class="btn btn-primary" onclick="Maexchen.confirmAnnounce()" style="margin-top:14px;">Ansagen</div>
+    </div>
+
+    <div id="max-step-decision" style="display:none;">
+      <div class="feedback-box">
+        <div class="label">🎙️ Ansage</div>
+        <div class="comment"><b id="max-announcer-name"></b> sagt: <b id="max-announced-combo"></b></div>
+      </div>
+      <p class="muted" style="text-align:center;"><b id="max-next-name"></b> ist dran:</p>
+      <div class="btn btn-secondary" onclick="Maexchen.believe()">Glauben &amp; selbst würfeln</div>
+      <div class="btn btn-danger" onclick="Maexchen.doubt()">Zweifeln – aufdecken!</div>
+    </div>
+
+    <div id="max-step-reveal" style="display:none;">
+      <div class="dice-row">
+        <div class="die" id="max-reveal-die1">?</div>
+        <div class="die" id="max-reveal-die2">?</div>
+      </div>
+      <p style="text-align:center;">Tatsächlicher Wurf: <b id="max-reveal-combo"></b></p>
+      <div class="feedback-box penalty">
+        <div class="label">🎙️ Ergebnis</div>
+        <div class="comment" id="max-reveal-result"></div>
+        <div id="max-reveal-sips"></div>
+      </div>
+      <div class="btn btn-primary" onclick="Maexchen.nextRound()">Nächste Runde</div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="btn btn-danger" onclick="endToResults()">Spiel beenden &amp; Ergebnisse</div>
+  </div>
+
+  <!-- 7-11-PAAR GAME -->
+  <div class="screen" id="screen-game-seveneleven">
+    <div class="back-link" onclick="confirmLeaveGame()">&larr; Spiel verlassen</div>
+    <div class="game-top">
+      <div class="current-player">
+        <div class="avatar" id="se-avatar"></div>
+        <div>
+          <div id="se-player-name" style="font-weight:700;"></div>
+          <div class="score-pill">ist am würfeln</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="se-step-roll">
+      <p class="muted" style="text-align:center; margin-top:24px;">2–6: rechter Nachbar trinkt · 7: du wählst wer trinkt · 8–12: linker Nachbar trinkt · Pasch: du verteilst frei</p>
+      <div class="btn btn-primary" onclick="SevenEleven.roll()" style="margin-top:20px;">Würfeln 🎲</div>
+    </div>
+
+    <div id="se-step-result" style="display:none;">
+      <div class="dice-row">
+        <div class="die" id="se-die1">?</div>
+        <div class="die" id="se-die2">?</div>
+      </div>
+      <p style="text-align:center; font-size:20px; font-weight:700;" id="se-sum-label"></p>
+      <div class="feedback-box penalty" id="se-outcome-box" style="display:none;">
+        <div class="label">🎙️ Ergebnis</div>
+        <div class="comment" id="se-outcome-text"></div>
+      </div>
+      <div id="se-target-picker" style="display:none;">
+        <p class="muted" style="text-align:center;">Wer trinkt?</p>
+        <div class="target-list" id="se-target-list"></div>
+      </div>
+      <div class="btn btn-primary" id="se-next-btn" style="display:none;" onclick="SevenEleven.nextRound()">Nächste Runde</div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="btn btn-danger" onclick="endToResults()">Spiel beenden &amp; Ergebnisse</div>
+  </div>
+
+  <!-- BUSFAHRER GAME (dynamischer Inhalt) -->
+  <div class="screen" id="screen-game-busfahrer">
+    <div class="back-link" onclick="confirmLeaveGame()">&larr; Spiel verlassen</div>
+    <div id="bus-content"></div>
+    <div class="spacer"></div>
+    <div class="btn btn-danger" onclick="endToResults()">Spiel beenden &amp; Ergebnisse</div>
+  </div>
+
+  <!-- SPRICHWÖRTER GAME (dynamischer Inhalt) -->
+  <div class="screen" id="screen-game-sprichwoerter">
+    <div class="back-link" onclick="confirmLeaveGame()">&larr; Spiel verlassen</div>
+    <div id="sw-content"></div>
+    <div class="spacer"></div>
+    <div class="btn btn-danger" onclick="endToResults()">Spiel beenden &amp; Ergebnisse</div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <h1>Ergebnisse</h1>
+    <p class="muted" style="margin-top:-10px;">Runde beendet – hier ist eure Bilanz.</p>
+    <div id="winner-card-wrap"></div>
+    <div id="results-list"></div>
+    <p class="muted" id="loser-comment" style="text-align:center; font-style:italic;"></p>
+    <div class="spacer"></div>
+    <div class="stack">
+      <div class="btn btn-primary" onclick="goTo('gameselect')">Weiter zum nächsten Spiel</div>
+      <div class="btn btn-ghost" onclick="goTo('home')">Zur Startseite</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-message" id="modal-message"></div>
+    <div class="stack" id="modal-buttons"></div>
+  </div>
+</div>
+
+<div id="penalty-overlay">
+  <div class="penalty-box">
+    <div class="penalty-emoji">🍺</div>
+    <div class="penalty-player" id="penalty-player"></div>
+    <div class="penalty-sips-big" id="penalty-sips-text"></div>
+    <div class="penalty-message" id="penalty-message"></div>
+    <div class="penalty-ok-btn" id="penalty-ok-btn">Getrunken! ✅ Weiter</div>
+  </div>
+</div>
+
+<div id="buddy-container">
+  <div class="buddy-bubble" id="buddy-bubble"></div>
+  <div class="buddy-avatar" id="buddy-avatar">🥴</div>
+</div>
+
+<script>
+/* ============ GLOBAL DATA ============ */
+
+const NEON_COLORS = ['#FF2E92', '#3EE6FF', '#9D4EDD', '#39FF88', '#FFE23E'];
+
+/* ---- Sprachausgabe: möglichst natürliche deutsche Stimme wählen ---- */
+let cachedVoices = [];
+function refreshVoices() { cachedVoices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+if (window.speechSynthesis) {
+  refreshVoices();
+  speechSynthesis.onvoiceschanged = refreshVoices;
+}
+function pickNaturalGermanVoice() {
+  if (!cachedVoices.length) refreshVoices();
+  const german = cachedVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('de'));
+  if (!german.length) return null;
+  const scored = german.map(v => {
+    let score = 0;
+    if (/google/i.test(v.name)) score += 3;
+    if (/enhanced|premium|neural|natural/i.test(v.name)) score += 3;
+    if (/siri/i.test(v.name)) score += 2;
+    if (/compact/i.test(v.name)) score -= 2;
+    if (v.localService === false) score += 1;
+    return { v, score };
+  }).sort((a, b) => b.score - a.score);
+  return scored[0].v;
+}
+
+function getBuddyVoice() {
+  const savedURI = localStorage.getItem('saufapp_buddy_voice');
+  if (savedURI) {
+    if (!cachedVoices.length) refreshVoices();
+    const found = cachedVoices.find(v => v.voiceURI === savedURI);
+    if (found) return found;
+  }
+  return pickNaturalGermanVoice();
+}
+
+function renderVoiceSettings() {
+  const select = document.getElementById('voice-select');
+  const populate = () => {
+    if (!cachedVoices.length) refreshVoices();
+    const german = cachedVoices.filter(v => v.lang && v.lang.toLowerCase().startsWith('de'));
+    if (!german.length) {
+      select.innerHTML = '<option value="">Keine deutschen Stimmen gefunden</option>';
+      return;
+    }
+    const savedURI = localStorage.getItem('saufapp_buddy_voice');
+    select.innerHTML = german.map(v =>
+      `<option value="${escapeHtml(v.voiceURI)}"${v.voiceURI === savedURI ? ' selected' : ''}>${escapeHtml(v.name)} (${escapeHtml(v.lang)})</option>`
+    ).join('');
+  };
+  populate();
+  if (!cachedVoices.length && window.speechSynthesis) {
+    speechSynthesis.onvoiceschanged = () => { refreshVoices(); populate(); };
+  }
+}
+
+function testBuddyVoice() {
+  const select = document.getElementById('voice-select');
+  const uri = select.value;
+  const voice = cachedVoices.find(v => v.voiceURI === uri);
+  if (!window.speechSynthesis) { showAlert('Sprachausgabe wird auf diesem Gerät nicht unterstützt.'); return; }
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance('Na dann Prost! Hoffentlich klinge ich jetzt besser.');
+  utter.lang = 'de-DE';
+  if (voice) utter.voice = voice;
+  utter.pitch = 1.0;
+  utter.rate = 1.0;
+  speechSynthesis.speak(utter);
+}
+
+function saveBuddyVoice() {
+  const select = document.getElementById('voice-select');
+  const uri = select.value;
+  if (!uri) { showAlert('Bitte zuerst eine Stimme auswählen.'); return; }
+  localStorage.setItem('saufapp_buddy_voice', uri);
+  const confirmEl = document.getElementById('voice-save-confirm');
+  confirmEl.style.display = 'block';
+  setTimeout(() => { confirmEl.style.display = 'none'; }, 2500);
+}
+
+const COMMENTS = {
+  round_start: [
+    'Los geht\'s – Hirn einschalten, Glas festhalten!',
+    'Neue Runde, neues Glück. Zeigt, was ihr drauf habt.',
+    'Die Uhr tickt gleich. Bereit machen!',
+  ],
+  correct_easy: ['Passt schon.', 'Okay, geht klar.', 'Solide Antwort.'],
+  correct_creative: ['Oh, das war clever!', 'Nicht schlecht, das kam niemand zuvor.', 'Kreativ! Extra Respekt.'],
+  duplicate: ['Das kam schon – nochmal nachdenken!', 'Doppelt gemoppelt zählt nicht.', 'Schon genannt, neue Idee bitte.'],
+  timeout: ['Zeit um! Nächstes Mal schneller.', 'Die Uhr hat gewonnen. Pech gehabt.', 'Ohh, so knapp daneben.'],
+  winner: [
+    '{playerName} räumt ab – Glückwunsch!',
+    'Die Krone geht an {playerName}. Verdient!',
+    '{playerName} hat heute den Kopf zum Denken UND zum Trinken benutzt.',
+  ],
+  loser: [
+    '{playerName}, es gibt immer eine nächste Runde...',
+    'Kopf hoch, {playerName} – nächstes Mal wird\'s besser.',
+    '{playerName} übernimmt heute den Trinkspruch.',
+  ],
+  maexchen_lied: [
+    'Gelogen! Die Wahrheit kommt immer ans Licht.',
+    'Erwischt! Schlechter Bluff.',
+    'Nette Lüge, aber nicht gut genug.',
+  ],
+  maexchen_truth: [
+    'Die Wahrheit gesagt – der Zweifel war umsonst!',
+    'Ehrlich währt am längsten. Zweifler trinkt.',
+    'Zu ehrlich für diese Welt. Pech für den Zweifler.',
+  ],
+};
+
+function getComment(type, vars) {
+  const pool = COMMENTS[type] || ['...'];
+  let text = pool[Math.floor(Math.random() * pool.length)];
+  if (vars) for (const key in vars) text = text.replace('{' + key + '}', vars[key]);
+  return text;
+}
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+/* ============ CUSTOM MODAL (Ersatz für confirm()/alert()) ============ */
+
+function showAlert(message, okLabel) {
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('modal-message').textContent = message;
+  document.getElementById('modal-buttons').innerHTML = `<div class="btn btn-primary" id="modal-ok-btn">${okLabel || 'OK'}</div>`;
+  overlay.classList.add('active');
+  document.getElementById('modal-ok-btn').onclick = () => overlay.classList.remove('active');
+}
+
+function showConfirm(message, onConfirm, confirmLabel, cancelLabel) {
+  const overlay = document.getElementById('modal-overlay');
+  document.getElementById('modal-message').textContent = message;
+  document.getElementById('modal-buttons').innerHTML = `
+    <div class="btn btn-danger" id="modal-confirm-btn">${confirmLabel || 'Ja, sicher'}</div>
+    <div class="btn btn-ghost" id="modal-cancel-btn">${cancelLabel || 'Abbrechen'}</div>
+  `;
+  overlay.classList.add('active');
+  document.getElementById('modal-confirm-btn').onclick = () => { overlay.classList.remove('active'); onConfirm(); };
+  document.getElementById('modal-cancel-btn').onclick = () => overlay.classList.remove('active');
+}
+
+/* ============ PENALTY OVERLAY (direkte, blockierende Strafschluck-Bestätigung) ============ */
+
+/* ============ BUDDY CHARAKTER (betrunkener Kumpel) ============ */
+
+const BUDDY_PENALTY_LINES = [
+  'Hahaha, {name}! {sips} Schlucke, auf geht\'s!',
+  'Oioioi {name}... das hat gesessen! {sips} Schlucke, prost!',
+  '{name}, alte Wasserpfeife, {sips} Schlucke bitte!',
+  'Hicks! {name} muss {sips} Schlucke nehmen, geil!',
+  'Autsch, {name}! {sips} auf ex, Kumpel!',
+  '{name}, das war nix! {sips} Schlucke, zack zack!',
+  'Na sowas, {name}! {sips} Schlucke, ich lach mich kaputt!',
+  '{name}, du Krieger! {sips} Schlucke und weiter geht\'s!',
+  'Ohhh {name}, das tut weh! {sips} Schlucke fällig!',
+  '{name}, komm schon, {sips} Schlucke sind doch nix für dich!',
+  'Peinlich, peinlich, {name}! {sips} Schlucke, ratzfatz!',
+  'Tja {name}, Pech gehabt! {sips} Schlucke, herunter damit!',
+  '{name}, das nächste Mal besser aufpassen! {sips} Schlucke!',
+  'Huch, {name}! {sips} Schlucke, aber mit Stil bitte!',
+  '{name}, so ein Klassiker! {sips} Schlucke, prost Mahlzeit!',
+  'Nanana {name}, {sips} Schlucke, das wird noch lustig heute!',
+  '{name}, ich hab\'s kommen sehen! {sips} Schlucke, los!',
+  'Uiuiui {name}, {sips} Schlucke direkt in den Nacken!'
+];
+
+const BUDDY_WIN_LINES = [
+  '{name}, du Legende! Sauber gemacht!',
+  'Boah {name}, Respekt, du Maschine!',
+  '{name} räumt ab, alle Achtung!',
+  'Hahaha {name}, du bist ja richtig gut drauf!',
+  'Na also {name}, geht doch! Prost drauf!',
+  '{name} ist erlöst! Das nenn ich mal Klasse!',
+  'Wahnsinn, {name}! Ich bin stolz auf dich!',
+  '{name}, du bist heute einfach nicht zu stoppen!',
+  'Applaus für {name}! Ganz großes Kino!',
+  '{name}, so gewinnt man das, Kumpel!',
+  'Hut ab, {name}! Das war stark!',
+  '{name} zeigt allen, wie\'s geht!',
+  'Chapeau, {name}! Weiter so!',
+  '{name}, du hast dir jetzt echt ein Bier verdient!'
+];
+
+let buddyTimeout = null;
+
+function buddySay(text, { laugh = false } = {}) {
+  const container = document.getElementById('buddy-container');
+  const bubble = document.getElementById('buddy-bubble');
+  const avatar = document.getElementById('buddy-avatar');
+  if (!container || !bubble || !avatar) return;
+  clearTimeout(buddyTimeout);
+  bubble.textContent = text;
+  container.classList.remove('active');
+  void container.offsetWidth; // reflow, damit die Pop-Animation neu startet
+  container.classList.add('active');
+  avatar.classList.remove('laughing');
+  void avatar.offsetWidth;
+  if (laugh) avatar.classList.add('laughing');
+  buddySpeak(text, laugh);
+  buddyTimeout = setTimeout(() => { container.classList.remove('active'); }, 5000);
+}
+
+function buddySpeak(text, laugh) {
+  if (!window.speechSynthesis) return;
+  try {
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(laugh ? 'Hahaha! ' + text : text);
+    utter.lang = 'de-DE';
+    const voice = getBuddyVoice();
+    if (voice) utter.voice = voice;
+    utter.pitch = 1.0;
+    utter.rate = 1.0;
+    speechSynthesis.speak(utter);
+  } catch (e) {}
+}
+
+let lastPenaltyLineIdx = -1;
+let lastWinLineIdx = -1;
+
+function pickLine(lines, lastIdxRef) {
+  if (lines.length <= 1) return { text: lines[0], idx: 0 };
+  let idx;
+  do { idx = randInt(0, lines.length - 1); } while (idx === lastIdxRef);
+  return { text: lines[idx], idx };
+}
+
+function buddyReactPenalty(playerName, sips) {
+  const picked = pickLine(BUDDY_PENALTY_LINES, lastPenaltyLineIdx);
+  lastPenaltyLineIdx = picked.idx;
+  const line = picked.text.replace('{name}', playerName).replace('{sips}', sips);
+  buddySay(line, { laugh: true });
+}
+
+function buddyReactWin(playerName) {
+  const picked = pickLine(BUDDY_WIN_LINES, lastWinLineIdx);
+  lastWinLineIdx = picked.idx;
+  const line = picked.text.replace('{name}', playerName);
+  buddySay(line, { laugh: true });
+}
+
+function triggerPenalty(player, sips, message, onDone) {
+  addSips(player, sips);
+  const overlay = document.getElementById('penalty-overlay');
+  document.getElementById('penalty-player').textContent = player.name;
+  document.getElementById('penalty-sips-text').textContent = sips + ' Schluck' + (sips > 1 ? 'e' : '') + ' trinken!';
+  document.getElementById('penalty-message').textContent = message || '';
+  overlay.classList.add('active');
+  buddyReactPenalty(player.name, sips);
+  document.getElementById('penalty-ok-btn').onclick = () => {
+    overlay.classList.remove('active');
+    if (onDone) onDone();
+  };
+}
+
+/* ============ STATE ============ */
+
+let state = {
+  players: [],
+  currentScreen: 'splash',
+  currentGame: null,
+};
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ============ NAVIGATION ============ */
+
+function goTo(screenName) {
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.getElementById('screen-' + screenName).classList.add('active');
+  state.currentScreen = screenName;
+  if (screenName === 'home') renderHome();
+  if (screenName === 'players') renderPlayers();
+  if (screenName === 'category-select') renderCategorySelect();
+  if (screenName === 'voice-settings') renderVoiceSettings();
+}
+
+function confirmLeaveGame() {
+  showConfirm('Spiel wirklich verlassen? Fortschritt der aktuellen Runde geht verloren.', () => {
+    goTo('gameselect');
+  }, 'Verlassen', 'Weiterspielen');
+}
+
+function launchGame(gameKey) {
+  if (state.players.length < 2) {
+    showAlert('Bitte zuerst mindestens 2 Spieler hinzufügen.');
+    goTo('players');
+    return;
+  }
+  state.currentGame = gameKey;
+  if (gameKey === 'categories') { goTo('category-select'); return; }
+  if (gameKey === 'maexchen') Maexchen.init();
+  if (gameKey === 'seveneleven') SevenEleven.init();
+  if (gameKey === 'busfahrer') Busfahrer.init();
+  if (gameKey === 'sprichwoerter') Sprichwoerter.init();
+  goTo('game-' + gameKey);
+}
+
+function renderCategorySelect() {
+  const list = document.getElementById('category-select-list');
+  list.className = 'tile-grid';
+  let html = `<div class="tile-card tile-random" onclick="startCategoryGame(null)">
+    <div class="tile-icon">🔀</div>
+    <h3>Zufällig gemischt</h3>
+    <p>Alle Kategorien durcheinander.</p>
+  </div>`;
+  html += Categories.CATS.map((cat, i) => `
+    <div class="tile-card tile-cat-${i}" onclick="startCategoryGame(${i})">
+      <div class="tile-icon">${cat.emoji}</div>
+      <h3>${escapeHtml(cat.title)}</h3>
+      <p>Nur diese Kategorie, immer wieder.</p>
+    </div>`).join('');
+  list.innerHTML = html;
+}
+
+function startCategoryGame(fixedIndex) {
+  Categories.init(fixedIndex);
+  goTo('game-categories');
+}
+
+function endToResults() {
+  goTo('results');
+  renderResults();
+}
+
+/* ============ PLAYERS ============ */
+
+function addPlayer() {
+  const input = document.getElementById('new-player-input');
+  const name = input.value.trim();
+  if (!name) return;
+  const color = NEON_COLORS[state.players.length % NEON_COLORS.length];
+  state.players.push({ id: 'p' + Date.now() + Math.random().toString(36).slice(2,6), name, color, score: 0, sips: 0 });
+  input.value = '';
+  renderPlayers();
+}
+
+function removePlayer(id) {
+  state.players = state.players.filter(p => p.id !== id);
+  renderPlayers();
+}
+
+function renderPlayers() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  state.players.forEach(p => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = `
+      <div class="row" style="width:100%;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="dot" style="background:${p.color};"></div>
+          <span class="name">${escapeHtml(p.name)}</span>
+        </div>
+        <span class="remove-btn" onclick="removePlayer('${p.id}')">&times;</span>
+      </div>`;
+    list.appendChild(row);
+  });
+  document.getElementById('new-player-input').onkeydown = (e) => { if (e.key === 'Enter') addPlayer(); };
+}
+
+function renderHome() {
+  const wrap = document.getElementById('home-player-summary');
+  if (state.players.length === 0) {
+    wrap.innerHTML = `<span class="tag">Noch keine Spieler hinzugefügt</span>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="player-chip-row">` + state.players.map(p =>
+    `<div class="player-chip"><span class="dot" style="background:${p.color};"></span>${escapeHtml(p.name)}<span class="sips">🍺${p.sips}</span></div>`
+  ).join('') + `</div>`;
+}
+
+function resetAllStats() {
+  showConfirm('Alle Punkte und Schlucke zurücksetzen?', () => {
+    state.players.forEach(p => { p.score = 0; p.sips = 0; });
+    renderHome();
+  }, 'Zurücksetzen', 'Abbrechen');
+}
+
+function addSips(player, amount) {
+  player.sips += amount;
+}
+
+function nextPlayerIndex(list, currentIndex, step) {
+  const n = list.length;
+  return ((currentIndex + step) % n + n) % n;
+}
+
+/* ============ RESULTS ============ */
+
+function renderResults() {
+  const sorted = [...state.players].sort((a, b) => b.score - a.score);
+  const winner = sorted[0];
+  const loser = sorted[sorted.length - 1];
+
+  document.getElementById('winner-card-wrap').innerHTML = winner ? `
+    <div class="winner-card">
+      <div class="trophy">🏆</div>
+      <div class="name">${escapeHtml(winner.name)}</div>
+      <div class="pts">${winner.score} Punkte · 🍺 ${winner.sips} Schlucke</div>
+      <div class="comment">${getComment('winner', { playerName: winner.name })}</div>
+    </div>` : '';
+
+  if (winner) buddyReactWin(winner.name);
+
+  document.getElementById('results-list').innerHTML = sorted.map((p, i) => `
+    <div class="result-row">
+      <span>#${i + 1} ${escapeHtml(p.name)}</span>
+      <span><span class="pts">${p.score} pt</span><span class="sips">🍺${p.sips}</span></span>
+    </div>`).join('');
+
+  document.getElementById('loser-comment').textContent =
+    (loser && winner && loser.id !== winner.id) ? getComment('loser', { playerName: loser.name }) : '';
+}
+
+/* ============================================================
+   SPIEL 1: KATEGORIEN
+   ============================================================ */
+
+const Categories = (() => {
+  const CATS = [
+    { emoji: '🏙️', title: 'Städte', glow: 'rgba(62,230,255,0.16)' },
+    { emoji: '🎬', title: 'Filme', glow: 'rgba(157,78,221,0.18)' },
+    { emoji: '🐾', title: 'Tiere', glow: 'rgba(57,255,136,0.16)' },
+    { emoji: '🍔', title: 'Essen & Trinken', glow: 'rgba(255,226,62,0.16)' },
+    { emoji: '⚽', title: 'Sport', glow: 'rgba(57,255,136,0.16)' },
+    { emoji: '🎵', title: 'Musik & Bands', glow: 'rgba(255,46,146,0.18)' },
+    { emoji: '💼', title: 'Berufe', glow: 'rgba(62,230,255,0.16)' },
+    { emoji: '🧳', title: 'Urlaubsziele', glow: 'rgba(255,226,62,0.16)' },
+  ];
+
+  let g = {};
+
+  function pickCategoryIndex(used) {
+    let idx;
+    do { idx = randInt(0, CATS.length - 1); } while (used.includes(idx) && used.length < CATS.length);
+    return idx;
+  }
+
+  function init(fixedIndex) {
+    const startIndex = (fixedIndex === null || fixedIndex === undefined) ? pickCategoryIndex([]) : fixedIndex;
+    g = {
+      catIndex: startIndex,
+      fixedCatIndex: (fixedIndex === null || fixedIndex === undefined) ? null : fixedIndex,
+      usedCats: [],
+      playerIndex: 0,
+      secondsLeft: 15,
+      timerHandle: null,
+      isRunning: false,
+      answers: [],
+    };
+    g.usedCats.push(g.catIndex);
+    hideFeedback();
+    startRound();
+  }
+
+  function currentPlayer() { return state.players[g.playerIndex]; }
+
+  function render() {
+    const cat = CATS[g.catIndex];
+    const p = currentPlayer();
+    document.getElementById('cat-emoji').textContent = cat.emoji;
+    document.getElementById('cat-title').textContent = cat.title;
+    document.getElementById('cat-avatar').style.background = p.color;
+    document.getElementById('cat-avatar').textContent = p.name.charAt(0).toUpperCase();
+    document.getElementById('cat-player-name').textContent = p.name;
+    document.getElementById('cat-player-score').textContent = p.score + ' Punkte · 🍺 ' + p.sips;
+    document.getElementById('cat-timer-ring').textContent = g.secondsLeft;
+    document.getElementById('cat-timer-ring').classList.toggle('urgent', g.secondsLeft <= 5);
+    document.getElementById('cat-in-round').style.display = 'block';
+
+    const catScreen = document.getElementById('screen-game-categories');
+    catScreen.setAttribute('data-bg-icon', cat.emoji);
+    catScreen.style.setProperty('--cat-glow', cat.glow);
+
+    const wrap = document.getElementById('cat-answers-wrap');
+    if (g.answers.length > 0) {
+      wrap.style.display = 'block';
+      document.getElementById('cat-answers-chips').innerHTML = g.answers.map(a => `<div class="answer-chip">${escapeHtml(a)}</div>`).join('');
+    } else wrap.style.display = 'none';
+
+    if (g.isRunning) setTimeout(() => { const el = document.getElementById('cat-answer-input'); if (el) el.focus(); }, 50);
+  }
+
+  function showFeedback(text, sips) {
+    const box = document.getElementById('cat-feedback-box');
+    box.style.display = 'block';
+    box.classList.toggle('penalty', !!sips);
+    document.getElementById('cat-feedback-label').textContent = sips ? '🎙️ Strafe!' : '🎙️ Spielleiter';
+    document.getElementById('cat-feedback-comment').textContent = text;
+    document.getElementById('cat-feedback-sips').innerHTML = sips ? `<span class="sips-badge">🍺 ${sips} Schluck${sips > 1 ? 'e' : ''}</span>` : '';
+  }
+  function hideFeedback() { document.getElementById('cat-feedback-box').style.display = 'none'; }
+
+  function startRound() {
+    g.isRunning = true;
+    g.secondsLeft = 15;
+    showFeedback(getComment('round_start'));
+    render();
+    g.timerHandle = setInterval(() => {
+      g.secondsLeft--;
+      document.getElementById('cat-timer-ring').textContent = g.secondsLeft;
+      document.getElementById('cat-timer-ring').classList.toggle('urgent', g.secondsLeft <= 5);
+      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); handleTimeout(); }
+    }, 1000);
+  }
+
+  function handleTimeout() {
+    const sips = randInt(2, 4);
+    triggerPenalty(currentPlayer(), sips, getComment('timeout'), () => advanceTurn());
+  }
+
+  function submitAnswer() {
+    const input = document.getElementById('cat-answer-input');
+    const value = input.value.trim();
+    if (!value) return;
+    clearInterval(g.timerHandle);
+    const isDuplicate = g.answers.some(a => a.toLowerCase() === value.toLowerCase());
+    input.value = '';
+    if (isDuplicate) {
+      triggerPenalty(currentPlayer(), 1, getComment('duplicate'), () => advanceTurn());
+    } else {
+      g.answers.push(value);
+      const isCreative = value.length > 9;
+      currentPlayer().score += isCreative ? 2 : 1;
+      showFeedback(getComment(isCreative ? 'correct_creative' : 'correct_easy'));
+      advanceTurn();
+    }
+  }
+
+  function skipTurn() {
+    clearInterval(g.timerHandle);
+    const sips = randInt(1, 2);
+    triggerPenalty(currentPlayer(), sips, 'Gepasst – das kostet!', () => advanceTurn());
+  }
+
+  function advanceTurn() {
+    g.playerIndex = (g.playerIndex + 1) % state.players.length;
+    if (g.playerIndex === 0 && g.fixedCatIndex === null) {
+      g.catIndex = pickCategoryIndex(g.usedCats);
+      g.usedCats.push(g.catIndex);
+      g.answers = [];
+    } else if (g.playerIndex === 0) {
+      g.answers = [];
+    }
+    startRound();
+  }
+
+  return { init, startRound, submitAnswer, skipTurn, CATS };
+})();
+
+/* ============================================================
+   SPIEL 2: MÄXCHEN
+   ============================================================ */
+
+const Maexchen = (() => {
+  // Rangfolge von hoch nach niedrig
+  const RANKS = ['21','66','55','44','33','22','11','65','64','63','62','61','54','53','52','51','43','42','41','32','31'];
+
+  let g = {};
+
+  function comboString(d1, d2) {
+    const pair = [d1, d2].sort((a, b) => b - a); // groß zuerst
+    if ((d1 === 2 && d2 === 1) || (d1 === 1 && d2 === 2)) return '21';
+    if (d1 === d2) return '' + d1 + d1;
+    return '' + pair[0] + pair[1];
+  }
+
+  function rankOf(combo) {
+    const idx = RANKS.indexOf(combo);
+    return RANKS.length - idx; // höher = besser
+  }
+
+  function init() {
+    g = {
+      playerIndex: 0,
+      actualDice: null,
+      actualCombo: null,
+      announcedCombo: null,
+    };
+    document.getElementById('max-step-roll').style.display = 'block';
+    document.getElementById('max-step-secret').style.display = 'none';
+    document.getElementById('max-step-announce').style.display = 'none';
+    document.getElementById('max-step-decision').style.display = 'none';
+    document.getElementById('max-step-reveal').style.display = 'none';
+    renderTop();
+  }
+
+  function currentPlayer() { return state.players[g.playerIndex]; }
+  function nextPlayer() { return state.players[nextPlayerIndex(state.players, g.playerIndex, 1)]; }
+
+  function renderTop() {
+    const p = currentPlayer();
+    document.getElementById('max-avatar').style.background = p.color;
+    document.getElementById('max-avatar').textContent = p.name.charAt(0).toUpperCase();
+    document.getElementById('max-player-name').textContent = p.name;
+    document.getElementById('max-player-role').textContent = 'würfelt geheim · 🍺 ' + p.sips;
+    document.getElementById('max-roller-name-1').textContent = p.name;
+  }
+
+  function revealRoll() {
+    const d1 = randInt(1, 6), d2 = randInt(1, 6);
+    g.actualDice = [d1, d2];
+    g.actualCombo = comboString(d1, d2);
+    document.getElementById('max-die1').textContent = d1;
+    document.getElementById('max-die2').textContent = d2;
+    document.getElementById('max-actual-combo').textContent = g.actualCombo === '21' ? '21 (Mäxchen!)' : g.actualCombo;
+    document.getElementById('max-step-roll').style.display = 'none';
+    document.getElementById('max-step-secret').style.display = 'block';
+  }
+
+  function goToAnnounce() {
+    const select = document.getElementById('max-announce-select');
+    select.innerHTML = RANKS.map(c => `<option value="${c}">${c === '21' ? '21 (Mäxchen!)' : c}</option>`).join('');
+    select.value = g.actualCombo;
+    document.getElementById('max-step-secret').style.display = 'none';
+    document.getElementById('max-step-announce').style.display = 'block';
+  }
+
+  function confirmAnnounce() {
+    g.announcedCombo = document.getElementById('max-announce-select').value;
+    document.getElementById('max-announcer-name').textContent = currentPlayer().name;
+    document.getElementById('max-announced-combo').textContent = g.announcedCombo === '21' ? '21 (Mäxchen!)' : g.announcedCombo;
+    document.getElementById('max-next-name').textContent = nextPlayer().name;
+    document.getElementById('max-step-announce').style.display = 'none';
+    document.getElementById('max-step-decision').style.display = 'block';
+  }
+
+  function believe() {
+    // Nächster Spieler übernimmt den Würfelbecher, alte Ansage verfällt
+    g.playerIndex = nextPlayerIndex(state.players, g.playerIndex, 1);
+    document.getElementById('max-step-decision').style.display = 'none';
+    document.getElementById('max-step-roll').style.display = 'block';
+    renderTop();
+  }
+
+  function doubt() {
+    const announcer = currentPlayer();
+    const doubter = nextPlayer();
+    document.getElementById('max-reveal-die1').textContent = g.actualDice[0];
+    document.getElementById('max-reveal-die2').textContent = g.actualDice[1];
+    document.getElementById('max-reveal-combo').textContent = g.actualCombo === '21' ? '21 (Mäxchen!)' : g.actualCombo;
+
+    const announcedRank = rankOf(g.announcedCombo);
+    const actualRank = rankOf(g.actualCombo);
+    const diff = Math.max(1, Math.abs(announcedRank - actualRank));
+    const sips = Math.min(8, Math.max(2, diff));
+
+    let loser, resultText, commentType;
+    if (announcedRank > actualRank) {
+      loser = announcer;
+      commentType = 'maexchen_lied';
+      resultText = `${announcer.name} hat gelogen!`;
+    } else {
+      loser = doubter;
+      commentType = 'maexchen_truth';
+      resultText = `${announcer.name} hat die Wahrheit gesagt.`;
+    }
+
+    document.getElementById('max-step-decision').style.display = 'none';
+    document.getElementById('max-step-reveal').style.display = 'block';
+    document.getElementById('max-reveal-result').textContent = resultText;
+    document.getElementById('max-reveal-sips').innerHTML = '';
+
+    triggerPenalty(loser, sips, getComment(commentType), () => {
+      g.playerIndex = state.players.indexOf(loser);
+    });
+  }
+
+  function nextRound() {
+    document.getElementById('max-step-reveal').style.display = 'none';
+    document.getElementById('max-step-roll').style.display = 'block';
+    renderTop();
+  }
+
+  return { init, revealRoll, goToAnnounce, confirmAnnounce, believe, doubt, nextRound };
+})();
+
+/* ============================================================
+   SPIEL 3: 7-11-PAAR
+   ============================================================ */
+
+const SevenEleven = (() => {
+  let g = {};
+
+  function init() {
+    g = { playerIndex: 0, d1: null, d2: null, sum: null };
+    document.getElementById('se-step-roll').style.display = 'block';
+    document.getElementById('se-step-result').style.display = 'none';
+    renderTop();
+  }
+
+  function currentPlayer() { return state.players[g.playerIndex]; }
+
+  function renderTop() {
+    const p = currentPlayer();
+    document.getElementById('se-avatar').style.background = p.color;
+    document.getElementById('se-avatar').textContent = p.name.charAt(0).toUpperCase();
+    document.getElementById('se-player-name').textContent = p.name;
+  }
+
+  function roll() {
+    g.d1 = randInt(1, 6);
+    g.d2 = randInt(1, 6);
+    g.sum = g.d1 + g.d2;
+    document.getElementById('se-die1').textContent = g.d1;
+    document.getElementById('se-die2').textContent = g.d2;
+    document.getElementById('se-sum-label').textContent = 'Summe: ' + g.sum + (g.d1 === g.d2 ? ' – PASCH!' : '');
+
+    document.getElementById('se-step-roll').style.display = 'none';
+    document.getElementById('se-step-result').style.display = 'block';
+    document.getElementById('se-outcome-box').style.display = 'none';
+    document.getElementById('se-target-picker').style.display = 'none';
+    document.getElementById('se-next-btn').style.display = 'none';
+
+    if (g.d1 === g.d2) {
+      showTargetPicker('Pasch! Verteile die Schlucke an wen du willst:', g.sum, 'pasch');
+    } else if (g.sum === 7) {
+      showTargetPicker('7! Wähle, wer 7 Schlucke trinkt:', 7, 'seven');
+    } else if (g.sum < 7) {
+      const sips = 7 - g.sum;
+      const target = state.players[nextPlayerIndex(state.players, g.playerIndex, 1)];
+      resolveAuto(target, sips, `${target.name} (rechter Nachbar) trinkt ${sips} Schlucke.`);
+    } else {
+      const sips = g.sum - 7;
+      const target = state.players[nextPlayerIndex(state.players, g.playerIndex, -1)];
+      resolveAuto(target, sips, `${target.name} (linker Nachbar) trinkt ${sips} Schlucke.`);
+    }
+  }
+
+  function showTargetPicker(label, sips, mode) {
+    document.getElementById('se-target-picker').style.display = 'block';
+    document.getElementById('se-target-picker').querySelector('p').textContent = label;
+    const list = document.getElementById('se-target-list');
+    list.innerHTML = state.players.map(p =>
+      `<div class="target-chip" style="border-color:${p.color};" onclick="SevenEleven.pickTarget('${p.id}', ${sips})">${escapeHtml(p.name)}</div>`
+    ).join('');
+  }
+
+  function pickTarget(playerId, sips) {
+    const target = state.players.find(p => p.id === playerId);
+    document.getElementById('se-target-picker').style.display = 'none';
+    triggerPenalty(target, sips, '', () => {
+      document.getElementById('se-outcome-box').style.display = 'block';
+      document.getElementById('se-outcome-text').textContent = `${target.name} hat getrunken!`;
+      document.getElementById('se-next-btn').style.display = 'block';
+    });
+  }
+
+  function resolveAuto(target, sips, text) {
+    triggerPenalty(target, sips, '', () => {
+      document.getElementById('se-outcome-box').style.display = 'block';
+      document.getElementById('se-outcome-text').textContent = text;
+      document.getElementById('se-next-btn').style.display = 'block';
+    });
+  }
+
+  function nextRound() {
+    g.playerIndex = (g.playerIndex + 1) % state.players.length;
+    document.getElementById('se-step-result').style.display = 'none';
+    document.getElementById('se-step-roll').style.display = 'block';
+    renderTop();
+  }
+
+  return { init, roll, pickTarget, nextRound };
+})();
+
+/* ============================================================
+   SPIEL 4: BUSFAHRER
+   ============================================================ */
+
+const Busfahrer = (() => {
+  const SUITS = [{ s: '♥', c: 'red', name: 'Herz' }, { s: '♦', c: 'red', name: 'Karo' }, { s: '♣', c: 'black', name: 'Kreuz' }, { s: '♠', c: 'black', name: 'Pik' }];
+  const VALUE_LABELS = { 11: 'B', 12: 'D', 13: 'K', 14: 'A' };
+
+  let g = {};
+
+  function drawCard() {
+    const value = randInt(2, 14);
+    const suit = SUITS[randInt(0, 3)];
+    return { value, suit: suit.s, color: suit.c, suitName: suit.name, played: false };
+  }
+  function labelOf(v) { return VALUE_LABELS[v] || ('' + v); }
+  function cardHtml(card, extraClass) {
+    if (!card) return `<div class="card-slot ${extraClass || ''}">?</div>`;
+    return `<div class="card-slot filled ${card.color} ${extraClass || ''}">${labelOf(card.value)}${card.suit}</div>`;
+  }
+
+  function init() {
+    g = {
+      phase: 'dealing',
+      playerIndex: 0,
+      revealedForCurrent: false,
+      hands: state.players.map(() => ({ cards: [drawCard(), drawCard(), drawCard()], playedCount: 0 })),
+      pyramid: [],
+      pyramidRevealIndex: -1,
+      finalCards: [],
+      finalRevealIndex: 0,
+      busDriverIndex: null,
+    };
+    renderDealing();
+  }
+
+  function currentPlayer() { return state.players[g.playerIndex]; }
+
+  function renderDealing() {
+    const p = currentPlayer();
+
+    if (!g.revealedForCurrent) {
+      document.getElementById('bus-content').innerHTML = `
+        <div class="tag" style="margin-bottom:10px;">Phase 1 von 3 · Kartenverteilung</div>
+        <h2 style="margin-bottom:0;">Handy weitergeben</h2>
+        <p class="muted" style="margin-top:2px;">An <b>${p.name}</b> (Spieler ${g.playerIndex + 1}/${state.players.length})</p>
+        <div class="card-row">${cardHtml(null)}${cardHtml(null)}${cardHtml(null)}</div>
+        <p style="text-align:center;">Nur ${p.name} darf gleich hinschauen – alle anderen wegsehen! 🙈</p>
+        <div class="btn btn-primary" onclick="Busfahrer.revealHand()">Ich bin ${escapeHtml(p.name)} – Karten zeigen</div>
+      `;
+    } else {
+      const hand = g.hands[g.playerIndex];
+      document.getElementById('bus-content').innerHTML = `
+        <div class="tag" style="margin-bottom:10px;">Phase 1 von 3 · Kartenverteilung</div>
+        <h2 style="margin-bottom:0;">${p.name}s geheime Karten</h2>
+        <p class="muted" style="margin-top:2px;">Merken – niemand sonst darf mitschauen!</p>
+        <div class="card-row">${hand.cards.map(c => cardHtml(c)).join('')}</div>
+        <div class="btn btn-secondary" onclick="Busfahrer.confirmDealt()">Gemerkt, Karten verstecken &amp; weiter</div>
+      `;
+    }
+  }
+
+  function revealHand() {
+    g.revealedForCurrent = true;
+    renderDealing();
+  }
+
+  function confirmDealt() {
+    g.playerIndex++;
+    g.revealedForCurrent = false;
+    if (g.playerIndex >= state.players.length) {
+      g.phase = 'pyramid';
+      buildPyramid();
+      renderPyramid();
+      return;
+    }
+    renderDealing();
+  }
+
+  function buildPyramid() {
+    const rowSizes = [4, 3, 2, 1];
+    g.pyramid = [];
+    rowSizes.forEach((size, rowIdx) => {
+      for (let i = 0; i < size; i++) {
+        g.pyramid.push({ card: drawCard(), row: rowIdx + 1, revealed: false });
+      }
+    });
+    g.pyramidRevealIndex = -1;
+  }
+
+  function pyramidRowsHtml() {
+    const rowSizes = [4, 3, 2, 1];
+    let idx = 0;
+    let html = '<div class="pyramid-wrap">';
+    rowSizes.forEach((size, rowIdx) => {
+      html += '<div class="pyramid-row">';
+      for (let i = 0; i < size; i++) {
+        const item = g.pyramid[idx];
+        const isCurrent = idx === g.pyramidRevealIndex;
+        html += `<div class="pyramid-card ${item.revealed ? 'revealed' : ''} ${isCurrent ? 'current-reveal' : ''}">${item.revealed ? labelOf(item.card.value) + item.card.suit : ''}</div>`;
+        idx++;
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderPyramid(matchInfo) {
+    const allRevealed = g.pyramidRevealIndex >= g.pyramid.length - 1;
+    let matchHtml = '';
+    if (matchInfo) matchHtml = matchInfo;
+
+    document.getElementById('bus-content').innerHTML = `
+      <div class="tag" style="margin-bottom:10px;">Phase 2 von 3 · Pyramide</div>
+      <h2 style="margin-bottom:0;">Karten loswerden</h2>
+      <p class="muted" style="margin-top:2px;">Reihe von unten = 2 Schlucke, ganz oben = 8 Schlucke</p>
+      ${pyramidRowsHtml()}
+      <div id="bus-pyr-action">${matchHtml}</div>
+      ${allRevealed
+        ? `<div class="btn btn-primary" onclick="Busfahrer.goToFinal()">Weiter zum Finale</div>`
+        : `<div class="btn btn-secondary" onclick="Busfahrer.revealNextPyramidCard()">Nächste Karte aufdecken</div>`
+      }
+    `;
+  }
+
+  function revealNextPyramidCard() {
+    g.pyramidRevealIndex++;
+    const item = g.pyramid[g.pyramidRevealIndex];
+    item.revealed = true;
+    renderPyramid(claimPickerHtml());
+  }
+
+  function claimPickerHtml() {
+    return `<p class="muted" style="text-align:center;">Wer hat diese Karte auf der Hand?</p><div class="target-list">` +
+      state.players.map((p, i) => `<div class="target-chip" style="border-color:${p.color};" onclick="Busfahrer.attemptClaim(${i})">${escapeHtml(p.name)}</div>`).join('') +
+      `<div class="target-chip" style="opacity:0.6;" onclick="Busfahrer.renderPlain()">Niemand – weiter</div>` +
+      `</div>`;
+  }
+
+  function attemptClaim(playerIdx) {
+    const item = g.pyramid[g.pyramidRevealIndex];
+    const hand = g.hands[playerIdx];
+    const player = state.players[playerIdx];
+    const matchingCards = hand.cards.filter(c => c.value === item.card.value && !c.played);
+
+    if (matchingCards.length > 0) {
+      matchingCards.forEach(c => { c.played = true; });
+      hand.playedCount += matchingCards.length;
+      const sips = item.row * 2 * matchingCards.length;
+      const targets = state.players.filter((p, i) => i !== playerIdx);
+      const targetHtml = `<p class="muted" style="text-align:center;">${player.name} verteilt ${sips} Schluck${sips > 1 ? 'e' : ''} an:</p><div class="target-list">` +
+        targets.map(p => `<div class="target-chip" style="border-color:${p.color};" onclick="Busfahrer.giveSips('${p.id}', ${sips})">${escapeHtml(p.name)}</div>`).join('') +
+        `</div>`;
+      renderPyramid(targetHtml);
+    } else {
+      triggerPenalty(player, item.row, 'Falsch behauptet – diese Karte war gar nicht auf der Hand!', () => renderPyramid(claimPickerHtml()));
+    }
+  }
+
+  function renderPlain() { renderPyramid(''); }
+
+  function giveSips(playerId, sips) {
+    const target = state.players.find(p => p.id === playerId);
+    triggerPenalty(target, sips, '', () => renderPyramid(''));
+  }
+
+  function goToFinal() {
+    // Busfahrer = wer die meisten Karten NICHT losgeworden ist
+    let maxRemaining = -1;
+    g.hands.forEach((hand, i) => {
+      const remaining = 3 - hand.playedCount;
+      if (remaining > maxRemaining) { maxRemaining = remaining; g.busDriverIndex = i; }
+    });
+    g.phase = 'final';
+    g.finalCards = Array.from({ length: FINAL_TARGET }, () => drawCard());
+    g.finalRevealIndex = 0;
+    g.winCelebrated = false;
+    renderFinal();
+  }
+
+  const FINAL_TARGET = 4; // 4 richtige in Folge = gewonnen
+
+  function finalPhase(index) { return index % 3; } // 0=Farbe, 1=Höher/Tiefer, 2=Zwischen/Außerhalb
+
+  function finalCardsHtml() {
+    let html = '<div class="card-row">';
+    for (let i = 0; i < FINAL_TARGET; i++) {
+      const revealed = i < g.finalRevealIndex;
+      html += revealed ? cardHtml(g.finalCards[i]) : cardHtml(null, i === g.finalRevealIndex ? 'current' : '');
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderFinal() {
+    const bd = state.players[g.busDriverIndex];
+    let actionHtml = '';
+    if (g.finalRevealIndex >= FINAL_TARGET) {
+      actionHtml = `<div class="feedback-box"><div class="comment">🎉 ${bd.name} hat es geschafft und ist erlöst!</div></div>
+        <div class="btn btn-primary" onclick="endToResults()">Zu den Ergebnissen</div>`;
+      if (!g.winCelebrated) { g.winCelebrated = true; buddyReactWin(bd.name); }
+    } else {
+      const phase = finalPhase(g.finalRevealIndex);
+      if (phase === 0) {
+        actionHtml = `
+          <p class="muted" style="text-align:center;">Welche Farbe hat die nächste Karte?</p>
+          <div class="grid2">
+            <div class="btn" style="background:#111; color:#fff;" onclick="Busfahrer.revealFinal('black')">⚫ Schwarz</div>
+            <div class="btn" style="background:#E23; color:#fff;" onclick="Busfahrer.revealFinal('red')">🔴 Rot</div>
+          </div>`;
+      } else if (phase === 1) {
+        actionHtml = `
+          <p class="muted" style="text-align:center;">Höher oder tiefer als die letzte Karte?</p>
+          <div class="grid2">
+            <div class="btn btn-secondary" onclick="Busfahrer.revealFinal('higher')">⬆️ Höher</div>
+            <div class="btn btn-primary" onclick="Busfahrer.revealFinal('lower')">⬇️ Tiefer</div>
+          </div>`;
+      } else {
+        actionHtml = `
+          <p class="muted" style="text-align:center;">Liegt die nächste Karte zwischen oder außerhalb der letzten beiden?</p>
+          <div class="grid2">
+            <div class="btn btn-secondary" onclick="Busfahrer.revealFinal('between')">↔️ Zwischen</div>
+            <div class="btn btn-primary" onclick="Busfahrer.revealFinal('outside')">↕️ Außerhalb</div>
+          </div>`;
+      }
+    }
+
+    document.getElementById('bus-content').innerHTML = `
+      <div class="tag" style="margin-bottom:10px;">Phase 3 von 3 · Finale</div>
+      <h2 style="margin-bottom:0;">Der Busfahrer</h2>
+      <p class="muted" style="margin-top:2px;"><b>${bd.name}</b> hatte die meisten Karten und muss den Bus fahren. (${g.finalRevealIndex}/${FINAL_TARGET} richtige in Folge)</p>
+      ${finalCardsHtml()}
+      <div id="bus-final-feedback"></div>
+      ${actionHtml}
+    `;
+  }
+
+  function revealFinal(guess) {
+    const bd = state.players[g.busDriverIndex];
+    const phase = finalPhase(g.finalRevealIndex);
+    const currentCard = g.finalCards[g.finalRevealIndex];
+    let correct;
+
+    if (phase === 0) {
+      correct = currentCard.color === guess;
+    } else if (phase === 1) {
+      const prevCard = g.finalCards[g.finalRevealIndex - 1];
+      correct = (guess === 'higher' && currentCard.value > prevCard.value) ||
+                (guess === 'lower' && currentCard.value < prevCard.value);
+    } else {
+      const cardA = g.finalCards[g.finalRevealIndex - 2];
+      const cardB = g.finalCards[g.finalRevealIndex - 1];
+      const low = Math.min(cardA.value, cardB.value);
+      const high = Math.max(cardA.value, cardB.value);
+      const isBetween = currentCard.value > low && currentCard.value < high;
+      correct = (guess === 'between' && isBetween) || (guess === 'outside' && !isBetween);
+    }
+
+    if (correct) {
+      g.finalRevealIndex++;
+      renderFinal();
+    } else {
+      triggerPenalty(bd, 1, 'Falsch! Die Reihe wird neu gemischt.', () => {
+        g.finalCards = Array.from({ length: FINAL_TARGET }, () => drawCard());
+        g.finalRevealIndex = 0;
+        renderFinal();
+      });
+    }
+  }
+
+  return { init, revealHand, confirmDealt, revealNextPyramidCard, attemptClaim, renderPlain, giveSips, goToFinal, revealFinal };
+})();
+
+/* ============================================================
+   SPIEL 5: SPRICHWÖRTER (mit Mikrofon-Aufnahme)
+   ============================================================ */
+
+const Sprichwoerter = (() => {
+  const PROVERBS = [
+    { start: 'Aller guten Dinge', end: 'sind drei.' },
+    { start: 'Wer anderen eine Grube gräbt,', end: 'fällt selbst hinein.' },
+    { start: 'Morgenstund', end: 'hat Gold im Mund.' },
+    { start: 'Was sich liebt,', end: 'das neckt sich.' },
+    { start: 'Übung', end: 'macht den Meister.' },
+    { start: 'Wer zuletzt lacht,', end: 'lacht am besten.' },
+    { start: 'Kleider', end: 'machen Leute.' },
+    { start: 'Der Apfel fällt nicht weit', end: 'vom Stamm.' },
+    { start: 'Lügen haben', end: 'kurze Beine.' },
+    { start: 'Viele Köche', end: 'verderben den Brei.' },
+    { start: 'Wer nicht wagt,', end: 'der nicht gewinnt.' },
+    { start: 'Steter Tropfen', end: 'höhlt den Stein.' },
+    { start: 'Ein Unglück kommt', end: 'selten allein.' },
+    { start: 'Ende gut,', end: 'alles gut.' },
+    { start: 'Aus den Augen,', end: 'aus dem Sinn.' },
+    { start: 'Hunde, die bellen,', end: 'beißen nicht.' },
+    { start: 'Wer im Glashaus sitzt,', end: 'sollte nicht mit Steinen werfen.' },
+    { start: 'Man soll den Tag nicht vor dem Abend', end: 'loben.' },
+    { start: 'Reden ist Silber,', end: 'Schweigen ist Gold.' },
+    { start: 'Was du heute kannst besorgen,', end: 'das verschiebe nicht auf morgen.' },
+  ];
+
+  let g = {};
+  let recognition = null;
+
+  function normalize(s) {
+    return s.toLowerCase()
+      .replace(/[.,!?;:„"'"]/g, '')
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+      .trim();
+  }
+
+  function checkMatch(said, expectedEnd) {
+    const saidN = normalize(said);
+    const expectedN = normalize(expectedEnd);
+    if (!saidN) return false;
+    if (saidN.includes(expectedN)) return true;
+    const expectedWords = expectedN.split(/\s+/).filter(w => w.length > 2);
+    if (expectedWords.length === 0) return saidN.includes(expectedN);
+    const matched = expectedWords.filter(w => saidN.includes(w)).length;
+    return (matched / expectedWords.length) >= 0.65;
+  }
+
+  function speak(text, onEnd) {
+    if (!window.speechSynthesis) { if (onEnd) onEnd(); return; }
+    try {
+      speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'de-DE';
+      const voice = getBuddyVoice();
+      if (voice) utter.voice = voice;
+      utter.rate = 1.0;
+      utter.onend = () => { if (onEnd) onEnd(); };
+      utter.onerror = () => { if (onEnd) onEnd(); };
+      speechSynthesis.speak(utter);
+    } catch (e) {
+      if (onEnd) onEnd();
+    }
+  }
+
+  function init() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    g = {
+      playerIndex: 0,
+      remaining: [...Array(PROVERBS.length).keys()],
+      currentProverbIdx: null,
+      isRecording: false,
+      transcript: '',
+      autoResult: null,
+      speaking: false,
+      micSupported: !!SR,
+    };
+    nextProverb();
+  }
+
+  function currentPlayer() { return state.players[g.playerIndex]; }
+
+  function nextProverb() {
+    if (g.remaining.length === 0) g.remaining = [...Array(PROVERBS.length).keys()];
+    const pick = randInt(0, g.remaining.length - 1);
+    g.currentProverbIdx = g.remaining.splice(pick, 1)[0];
+    g.isRecording = false;
+    g.transcript = '';
+    g.autoResult = null;
+    render();
+  }
+
+  function render() {
+    const p = currentPlayer();
+    const proverb = PROVERBS[g.currentProverbIdx];
+
+    let micSection;
+    if (!g.micSupported) {
+      micSection = `
+        <p class="muted" style="text-align:center;">🎙️ Spracherkennung ist auf diesem Gerät/in diesem Kontext nicht verfügbar (braucht eine echte https-Adresse statt einer lokalen Datei).</p>
+        <p style="text-align:center; margin-top:14px;">${p.name} spricht das Sprichwort laut zu Ende. War es richtig?</p>
+        <div class="grid2">
+          <div class="btn btn-secondary" onclick="Sprichwoerter.judge(true)">✅ Richtig</div>
+          <div class="btn btn-danger" onclick="Sprichwoerter.judge(false)">❌ Falsch</div>
+        </div>`;
+    } else if (g.autoResult !== null) {
+      micSection = `
+        <p class="muted" style="text-align:center;">Verstanden: "${escapeHtml(g.transcript || '(nichts erkannt)')}"</p>
+        <div class="feedback-box ${g.autoResult ? '' : 'penalty'}" style="margin:14px 0;">
+          <div class="comment">${g.autoResult ? '✅ Richtig erkannt!' : '❌ Das war nicht die richtige Antwort.'}</div>
+        </div>
+        ${g.speaking
+          ? `<p class="muted" style="text-align:center;">🔊 Richtiges Sprichwort wird vorgelesen ...</p>`
+          : `<p class="muted" style="text-align:center; font-size:13px;">War die KI-Einschätzung richtig?</p>
+             <div class="grid2">
+               <div class="btn btn-secondary" onclick="Sprichwoerter.judge(true)">✅ War richtig</div>
+               <div class="btn btn-danger" onclick="Sprichwoerter.judge(false)">❌ War falsch</div>
+             </div>`
+        }`;
+    } else {
+      micSection = `
+        <button class="mic-btn ${g.isRecording ? 'recording' : ''}" onclick="Sprichwoerter.toggleRecording()">🎙️</button>
+        <p class="muted" style="text-align:center;">${g.isRecording ? ('Hört zu: "' + escapeHtml(g.transcript || '...') + '" — zum Stoppen tippen') : 'Zum Starten tippen, danach selbst stoppen'}</p>`;
+    }
+
+    document.getElementById('sw-content').innerHTML = `
+      <h2 style="margin-bottom:0;">Sprichwörter</h2>
+      <p class="muted" style="margin-top:2px;"><b>${p.name}</b> ist dran</p>
+      <div class="proverb-box">
+        <div class="proverb-start">${escapeHtml(proverb.start)}</div>
+        <div class="proverb-ellipsis">...?</div>
+      </div>
+      ${micSection}
+    `;
+  }
+
+  function toggleRecording() {
+    if (g.isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+
+  function startRecording() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { g.micSupported = false; render(); return; }
+    try {
+      recognition = new SR();
+      recognition.lang = 'de-DE';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      g.transcript = '';
+
+      recognition.onresult = (e) => {
+        let text = '';
+        for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript + ' ';
+        g.transcript = text.trim();
+        render();
+      };
+      recognition.onerror = () => {
+        g.isRecording = false;
+        g.micSupported = false;
+        render();
+      };
+      recognition.onend = () => {
+        if (g.isRecording) {
+          try { recognition.start(); } catch (e) { /* ignore restart race */ }
+        }
+      };
+
+      recognition.start();
+      g.isRecording = true;
+      render();
+    } catch (e) {
+      g.micSupported = false;
+      render();
+    }
+  }
+
+  function stopRecording() {
+    g.isRecording = false;
+    if (recognition) { try { recognition.stop(); } catch (e) {} }
+    const proverb = PROVERBS[g.currentProverbIdx];
+    g.autoResult = checkMatch(g.transcript, proverb.end);
+    g.speaking = true;
+    render();
+    speak(proverb.start + ' ' + proverb.end, () => {
+      g.speaking = false;
+      render();
+    });
+  }
+
+  function judge(wasCorrect) {
+    const speaker = currentPlayer();
+    if (!wasCorrect) {
+      const sips = randInt(2, 4);
+      g.playerIndex = (g.playerIndex + 1) % state.players.length;
+      triggerPenalty(speaker, sips, '', () => nextProverb());
+    } else {
+      speaker.score += 1;
+      g.playerIndex = (g.playerIndex + 1) % state.players.length;
+      nextProverb();
+    }
+  }
+
+  return { init, toggleRecording, judge };
+})();
+
+/* ============ INIT ============ */
+
+setTimeout(() => { goTo('home'); }, 1400);
+</script>
+
+</body>
+</html>
