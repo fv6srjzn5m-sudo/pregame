@@ -39,11 +39,12 @@ Bei Änderungen, die eines der folgenden Themen berühren: **Auth/Login/Session,
 - `INFRASTRUCTURE.md` — Ist-Zustand aller Infrastruktur-Schichten, Prioritäten
 - `DESIGN-SYSTEM.md` — Token-System, Komponenten-Inventar, offene Punkte
 - `AUDIO.md` — TTS-Architektur, Lizenz-Hinweise, Asset-Pipeline
-- `AUDIT.md`, `STATUS.md` — entstehen am Ende des Setups (`PREGAME-SETUP-INSTRUCTIONS.md`, Phase 9)
+- `AUDIT.md` — Sicherheits-/Datenschutz-Audit, 2 offene CRITICAL-Punkte (siehe GitHub Issues #1, #2) — vor dem Launch lösen
+- `STATUS.md` — entsteht als Abschluss-Deliverable
 - `.claude/review-guidelines.md` — Fokus für automatisierte PR-Reviews: Severity-Schema (`CRITICAL`/`WARNING`/`NIT`), was gesucht und was ignoriert wird
 
 ## Skills & Hooks
 
-`.claude/skills/`: `security-check` (Diff gegen die Sicherheits-Checkliste prüfen), `new-component` (neue UI-Komponente token-konform anlegen), `privacy-impact` (Datenänderungen gegen `DATA-MODEL.md` prüfen), `release-check` (Pre-Launch-Checkliste), `explain-to-founder` (Code für Bastian/Noel in einfachen Worten erklären). `full-audit` kommt in Phase 9 dazu.
+`.claude/skills/`: `security-check` (Diff gegen die Sicherheits-Checkliste prüfen), `new-component` (neue UI-Komponente token-konform anlegen), `privacy-impact` (Datenänderungen gegen `DATA-MODEL.md` prüfen), `release-check` (Pre-Launch-Checkliste), `explain-to-founder` (Code für Bastian/Noel in einfachen Worten erklären), `full-audit` (wiederholt `AUDIT.md` vor jedem größeren Release).
 
 `.claude/settings.json` Hooks: blockiert Schreibzugriffe auf `.env`-Dateien und offensichtliche Secret-Muster, lintet automatisch nach Änderungen in `src/`/`scripts/`, lädt bei Sessionstart einen kurzen Projektstatus.
