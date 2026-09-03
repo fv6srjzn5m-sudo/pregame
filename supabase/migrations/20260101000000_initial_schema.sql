@@ -1,13 +1,24 @@
 -- PreGame Ranking / Community (Supabase)
+--
+-- HINWEIS (seit Phase 5b des Setups, DATA-MODEL.md): Dies ist jetzt eine versionierte
+-- Migration, kein "per Hand in den SQL-Editor einfuegen"-Skript mehr. Dieser Stand
+-- wurde bereits live gegen das Supabase-Projekt ausgefuehrt - beim erstmaligen
+-- Umstieg auf die Supabase CLI wird er per "supabase migration repair --status
+-- applied" als bereits angewendet markiert, NICHT erneut ausgefuehrt (einige der
+-- "create policy"-Statements unten sind nicht idempotent und wuerden bei einem
+-- echten Re-Run gegen die bestehende DB fehlschlagen). Alles Neue kommt ab jetzt
+-- als eigene Migration via "supabase migration new <name>" dazu - siehe DATA-MODEL.md.
+--
+-- Ursprüngliche Einrichtungsschritte (Referenz, bereits erledigt):
 -- 1) Neues Projekt auf https://supabase.com anlegen
 -- 2) Authentication → Providers → Email: für MVP "Confirm email" AUS
--- 3) Dieses Script im SQL Editor ausführen
--- 4) Project URL + anon key in der App unter Community → Setup speichern
+-- 3) Project URL + anon key in der App unter Community → Setup speichern
 --    (oder in src/ranking/config.js eintragen)
--- 5) npm run cap:sync
--- 6) Monatsende: automatisch via pg_cron (siehe supabase/cron_close_month.sql)
+-- 4) npm run cap:sync
+-- 5) Monatsende: automatisch via pg_cron (siehe 20260101000001_cron_close_month.sql)
 --    Manuell testen: select public.close_month_cron();
---    oder: select public.close_month('2026-08', 'manual');
+--    oder: select public.close_month('2026-08', 'manual'); (2-Parameter-Version,
+--    siehe 20260101000001 und die Aufraeum-Migration fuer die alte 1-Parameter-Variante)
 
 -- ---------------------------------------------------------------------------
 -- Profiles

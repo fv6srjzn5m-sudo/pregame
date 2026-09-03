@@ -1,13 +1,18 @@
 -- =============================================================================
 -- PreGame: automatischer Monatsabschluss (pg_cron)
 -- =============================================================================
--- VOR DEM AUSFÜHREN: Cron-Zeiten unten gegenprüfen (siehe Kommentar "CRON").
+-- HINWEIS (seit Phase 5b des Setups, DATA-MODEL.md): versionierte Migration, bereits
+-- live angewendet - beim CLI-Umstieg per "supabase migration repair --status applied"
+-- markieren, nicht erneut ausfuehren (nicht durchgehend idempotent, siehe die
+-- "create policy"-Statements ohne "drop policy if exists"-Vorlauf).
 --
--- Dashboard-Schritte (einmalig, kann der Agent nicht remote):
+-- VOR DEM AUSFÜHREN (Referenz, bereits erledigt): Cron-Zeiten unten gegenprüfen
+-- (siehe Kommentar "CRON").
+--
+-- Dashboard-Schritte (einmalig, wurden bereits erledigt):
 -- 1) Supabase → Database → Extensions → "pg_cron" aktivieren (Enable)
 -- 2) Falls vorhanden: auch unter Integrations / Cron Jobs prüfen
--- 3) Dieses Script im SQL Editor ausführen (als postgres / SQL-Editor)
--- 4) Kontrolle: select * from cron.job;
+-- 3) Kontrolle: select * from cron.job;
 --
 -- CRON (pg_cron läuft in UTC; 5-Felder: Min Stunde Tag Monat Wochentag)
 -- -----------------------------------------------------------------------------

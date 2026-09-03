@@ -1,0 +1,14 @@
+-- Fix: doppelte close_month()-Funktion entfernen
+--
+-- Gefunden bei der Migrations-Einrichtung (Phase 5b, DATA-MODEL.md):
+-- 20260101000000_initial_schema.sql definiert public.close_month(p_year_month text).
+-- 20260101000001_cron_close_month.sql definiert public.close_month(p_year_month text,
+-- p_source text) per "create or replace function" - das ERSETZT in Postgres aber nur
+-- Funktionen mit identischer Parameterliste. Da sich die Parameterzahl unterscheidet,
+-- entsteht ein ZWEITES, ueberladenes close_month statt eines Ersatzes. Die alte
+-- 1-Parameter-Version bleibt in der DB liegen, wird von nichts mehr aufgerufen
+-- (close_month_cron() nutzt nur noch die 2-Parameter-Version) und ist reine
+-- Altlast/Verwechslungsgefahr - kein Sicherheitsproblem, aber Schema-Drift.
+--
+-- Diese Migration räumt sie auf. "if exists" macht sie sicher wiederholbar.
+drop function if exists public.close_month(text);
