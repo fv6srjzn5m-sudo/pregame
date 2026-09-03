@@ -20,7 +20,7 @@ Zwei Gründer direkt nach dem Abitur, keiner mit formaler Entwickler-Ausbildung.
 
 ## Verbindliche Regeln
 
-1. **Keine hartcodierten Farb-, Abstands- oder Schriftwerte im UI-Code.** Nur Design-Tokens (siehe `DESIGN-SYSTEM.md`, sobald angelegt). Diese Regel gilt ab Phase 7, unabhängig davon, wann sie im Code durchgängig umgesetzt ist.
+1. **Keine hartcodierten Farb-, Abstands- oder Schriftwerte im UI-Code.** Nur Design-Tokens (siehe `DESIGN-SYSTEM.md`). Gilt für neuen Code ab sofort — der Bestandscode ist noch nicht durchgängig konform (Zahlen dazu in `DESIGN-SYSTEM.md`), das wird schrittweise nachgezogen, nicht rückwirkend über einen Mega-Diff erzwungen.
 2. **Keine Secrets im Client.** Ein Capacitor-Bundle lässt sich entpacken — alles in `saufapp.html`/`src/` ist öffentlich lesbar. API-Keys, die geheim bleiben müssen, gehören ausschließlich in ein Backend/GitHub Secret, nie in Client-Code (Ausnahme: der Supabase *Publishable*-Key, der ist laut Design öffentlich und durch RLS geschützt).
 3. **Keine selbstgebaute Auth.** Auth läuft über Supabase Auth. Kein eigenes Passwort-Hashing, keine eigene Session-/Token-Logik bauen.
 4. **Serverseitige Validierung für alles Sicherheitsrelevante.** Eine Prüfung, die nur im Client passiert (z. B. Abo-Status, Punktegrenzen), ist wirkungslos — muss serverseitig (Supabase RPC/RLS) erfolgen.
@@ -35,5 +35,15 @@ Bei Änderungen, die eines der folgenden Themen berühren: **Auth/Login/Session,
 
 - `ARCHITECTURE.md` — Ordnerstruktur, State-Management, Plugin-Anbindung
 - `CONSULTING.md` — wie eine Frage an den Berater gestellt wird
-- `DATA-MODEL.md`, `INFRASTRUCTURE.md`, `DESIGN-SYSTEM.md`, `AUDIO.md`, `AUDIT.md`, `STATUS.md` — entstehen in den folgenden Setup-Phasen (`PREGAME-SETUP-INSTRUCTIONS.md`)
+- `DATA-MODEL.md` — welche Daten lokal vs. in der Cloud landen, Migrations-Workflow
+- `INFRASTRUCTURE.md` — Ist-Zustand aller Infrastruktur-Schichten, Prioritäten
+- `DESIGN-SYSTEM.md` — Token-System, Komponenten-Inventar, offene Punkte
+- `AUDIO.md` — TTS-Architektur, Lizenz-Hinweise, Asset-Pipeline
+- `AUDIT.md`, `STATUS.md` — entstehen am Ende des Setups (`PREGAME-SETUP-INSTRUCTIONS.md`, Phase 9)
 - `.claude/review-guidelines.md` — Fokus für automatisierte PR-Reviews: Severity-Schema (`CRITICAL`/`WARNING`/`NIT`), was gesucht und was ignoriert wird
+
+## Skills & Hooks
+
+`.claude/skills/`: `security-check` (Diff gegen die Sicherheits-Checkliste prüfen), `new-component` (neue UI-Komponente token-konform anlegen), `privacy-impact` (Datenänderungen gegen `DATA-MODEL.md` prüfen), `release-check` (Pre-Launch-Checkliste), `explain-to-founder` (Code für Bastian/Noel in einfachen Worten erklären). `full-audit` kommt in Phase 9 dazu.
+
+`.claude/settings.json` Hooks: blockiert Schreibzugriffe auf `.env`-Dateien und offensichtliche Secret-Muster, lintet automatisch nach Änderungen in `src/`/`scripts/`, lädt bei Sessionstart einen kurzen Projektstatus.
