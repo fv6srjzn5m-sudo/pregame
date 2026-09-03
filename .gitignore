@@ -1,2 +1,35 @@
 node_modules/
 www/
+
+# Secrets / Umgebungsvariablen - niemals committen, nur lokal oder als GitHub Secret
+.env
+.env.*
+!.env.example
+
+# Build-Artefakte
+dist/
+build/
+*.log
+npm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# iOS Signing-Material - gehoert nie ins Repo (Distribution-Zertifikate, Provisioning-Profiles, Auth-Keys)
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.keystore
+*.jks
+
+# Xcode User-/Build-Daten (projektuebergreifend, falls ausserhalb von ios/ auftauchend)
+*.xcuserstate
+**/xcuserdata/
+**/*.xcuserdatad/
+
+# Cordova/Capacitor generierte Duplikate (macOS-Sync erzeugt teils "config 2.xml" etc.)
+ios/App/App/config*.xml
