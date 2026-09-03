@@ -8,6 +8,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        configureAudioSession()
+        // Ohne diesen Observer bleibt die Session nach einer Unterbrechung (eingehender
+        // Anruf, Siri, eine andere App uebernimmt Audio) deaktiviert, bis die App neu
+        // gestartet wird - die naechste TTS-Ansage waere dann stumm (gleiche Fehlerklasse
+        // wie der leere-AVAudioBuffer-Bug oben, nur durch eine Unterbrechung statt durch
+        // eine STT/TTS-Kollision ausgeloest). Reaktiviert die Session, sobald iOS meldet,
+        // dass die Unterbrechung vorbei ist.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioSessionInterruption),
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance()
+        )
+        return true
+    }
+
+    private func configureAudioSession() {
         // Gemeinsame Audio-Session für TTS + Spracherkennung. Ohne das kollidieren
         // AVSpeechSynthesizer und Speech Recognition und erzeugen leere AVAudioBuffer
         // (mDataByteSize == 0) bzw. stille Sprachausgabe – besonders bei Sprichwörter.
@@ -22,7 +39,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch {
             // Session-Setup ist best-effort; die App startet trotzdem.
         }
-        return true
+    }
+
+    @objc private func handleAudioSessionInterruption(_ notification: Notification) {
+        guard
+            let info = notification.userInfo,
+            let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+            let type = AVAudioSession.InterruptionType(rawValue: typeValue)
+        else { return }
+
+        switch type {
+        case .began:
+            // iOS uebernimmt das Stummschalten selbst (Anruf, Siri, andere App).
+            // Kein eigenes Zutun noetig - die JS-Seite bekommt ueber das TTS-Plugin
+            // ohnehin ein onEnd/Fehler-Callback und faengt sich selbst ab (siehe
+            // stopAllTTS()/speakWithVoice() in saufapp.html).
+            break
+        case .ended:
+            // shouldResume fehlt z.B. bei einem abgelehnten Anruf - dann will iOS
+            // bewusst nicht automatisch weitermachen (z.B. weil eine andere App jetzt
+            // Audio spielt). Nur reaktivieren, wenn iOS das auch erlaubt.
+            let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt ?? 0
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                configureAudioSession()
+            }
+        @unknown default:
+            break
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

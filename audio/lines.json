@@ -1,0 +1,23 @@
+{
+  "_readme": "Quelle der Wahrheit fuer vorproduzierte Sprachdateien (siehe AUDIO.md). Nur Zeilen OHNE Platzhalter (kein {playerName} o.ae.) gehoeren hier rein - dynamische Ansagen mit Spielernamen bleiben Geraete-TTS (siehe speakBuddyText() in saufapp.html). Dateien werden mit scripts/generate-audio.mjs aus diesem Manifest erzeugt, nicht umgekehrt. Aktuell nur 3 Beispiel-Zeilen aus COMMENTS.round_start (saufapp.html) uebernommen - das vollstaendige Befuellen aus allen COMMENTS-Bloecken und den 17 Spielmodulen ist eine eigene, spaetere Aufgabe (siehe AUDIO.md), kein Teil dieses Durchgangs.",
+  "lines": [
+    {
+      "id": "round_start_1",
+      "context": "Rundenbeginn, Buddy-Ansage (saufapp.html COMMENTS.round_start[0])",
+      "de": "Los geht's – Hirn einschalten, Glas festhalten!",
+      "en": "Here we go – switch your brain on, grab your glass!"
+    },
+    {
+      "id": "round_start_2",
+      "context": "Rundenbeginn, Buddy-Ansage (saufapp.html COMMENTS.round_start[1])",
+      "de": "Neue Runde, neues Glück. Zeigt, was ihr drauf habt.",
+      "en": "New round, new luck. Show what you've got."
+    },
+    {
+      "id": "round_start_3",
+      "context": "Rundenbeginn, Buddy-Ansage (saufapp.html COMMENTS.round_start[2])",
+      "de": "Die Uhr tickt gleich. Bereit machen!",
+      "en": "The clock's about to start. Get ready!"
+    }
+  ]
+}
