@@ -4751,6 +4751,13 @@ const I18N = {
     rk_login_btn: 'Einloggen',
     rk_register_btn: 'Konto erstellen',
     rk_logout_btn: 'Ausloggen',
+    rk_export_btn: 'Meine Daten exportieren',
+    rk_export_failed: 'Export fehlgeschlagen. Bitte später erneut versuchen.',
+    rk_delete_account_btn: 'Konto löschen',
+    rk_delete_account_confirm: 'Konto und alle zugehörigen Daten (Ranking-Punkte, Profil) unwiderruflich löschen? Von dir erstellte Gruppen bleiben für andere Mitglieder erhalten.',
+    rk_delete_account_yes: 'Endgültig löschen',
+    rk_delete_account_done: 'Konto gelöscht.',
+    rk_delete_account_failed: 'Löschen fehlgeschlagen. Bitte später erneut versuchen.',
     rk_save_nick: 'Nickname speichern',
     rk_logged_in_as: 'Eingeloggt als {nick}',
     rk_need_login: 'Logge dich ein, um am Ranking teilzunehmen',
@@ -5161,6 +5168,13 @@ const I18N = {
     rk_login_btn: 'Log in',
     rk_register_btn: 'Create account',
     rk_logout_btn: 'Log out',
+    rk_export_btn: 'Export my data',
+    rk_export_failed: 'Export failed. Please try again later.',
+    rk_delete_account_btn: 'Delete account',
+    rk_delete_account_confirm: 'Permanently delete your account and all related data (ranking points, profile)? Groups you created stay intact for other members.',
+    rk_delete_account_yes: 'Delete permanently',
+    rk_delete_account_done: 'Account deleted.',
+    rk_delete_account_failed: 'Deletion failed. Please try again later.',
     rk_save_nick: 'Save nickname',
     rk_logged_in_as: 'Signed in as {nick}',
     rk_need_login: 'Log in to join the ranking',
@@ -13389,6 +13403,8 @@ const RankingUI = (() => {
         ${fieldHtml({ id: 'rk-nick-edit', type: 'text', placeholder: t('rk_nickname'), autocomplete: 'nickname', icon: 'user' })}
         ${ctaBtn(t('rk_save_nick'), 'RankingUI.saveNick()')}
         <div class="btn btn-ghost" style="margin-top:10px;" onclick="RankingUI.logout()">${escapeHtml(t('rk_logout_btn'))}</div>
+        <div class="btn btn-ghost" style="margin-top:10px;" onclick="RankingUI.exportData()">${escapeHtml(t('rk_export_btn'))}</div>
+        <div class="btn btn-danger" style="margin-top:10px;" onclick="RankingUI.deleteAccount()">${escapeHtml(t('rk_delete_account_btn'))}</div>
         <div class="rk-status" id="rk-account-status"></div>
       </div>
       ${!nick ? `<div class="rk-banner">${escapeHtml(t('rk_need_nickname'))}</div>` : ''}`;
@@ -13455,10 +13471,39 @@ const RankingUI = (() => {
     renderAccount();
   }
 
+  /* DSGVO Art. 15: zeigt die serverseitig gespeicherten Daten der eingeloggten
+     Person als JSON. Bewusst simple Darstellung (Modal statt Datei-Download) -
+     erfuellt "Daten zugaenglich machen", ohne Filesystem-Plugin/Share-Sheet zu
+     brauchen. Kann spaeter durch einen echten Export (z.B. per Mail) ersetzt werden. */
+  async function exportData() {
+    try {
+      const data = await R().exportMyData();
+      showAlert(JSON.stringify(data, null, 2));
+    } catch (err) {
+      showAlert(t('rk_export_failed'));
+    }
+  }
+
+  /* DSGVO Art. 17: loescht Konto + alle serverseitigen Daten unwiderruflich.
+     Destruktive Aktion -> immer ueber showConfirm, nie direkt ausfuehren
+     (gleiches Muster wie confirm_reset_stats_message an anderer Stelle). */
+  function deleteAccount() {
+    showConfirm(t('rk_delete_account_confirm'), async () => {
+      try {
+        await R().deleteAccount();
+        showAlert(t('rk_delete_account_done'));
+        renderAccount();
+      } catch (err) {
+        showAlert(t('rk_delete_account_failed'));
+      }
+    }, t('rk_delete_account_yes'), t('common_cancel'));
+  }
+
   return {
     setTab, render, renderAccount, renderGroupDetail,
     saveSetup, createGroup, joinGroup, openGroup, openGroupEl,
     login, register, saveNick, logout, togglePass, showLegal,
+    exportData, deleteAccount,
   };
 })();
 

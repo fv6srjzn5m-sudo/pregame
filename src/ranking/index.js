@@ -343,6 +343,30 @@ function getProfile() {
   return profileCache;
 }
 
+/** DSGVO Art. 15: alle serverseitig gespeicherten Daten der eingeloggten Person. */
+async function exportMyData() {
+  const sb = getClient();
+  if (!sb) throw new Error('not_configured');
+  const { data, error } = await sb.rpc('export_my_data');
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * DSGVO Art. 17: loescht das Konto vollstaendig (Server) und alle lokalen Spuren
+ * davon (Session, Profil-Cache, Warteschlange). Danach ist die Person ausgeloggt.
+ */
+async function deleteAccount() {
+  const sb = getClient();
+  if (!sb) throw new Error('not_configured');
+  const { error } = await sb.rpc('delete_my_account');
+  if (error) throw error;
+  try { saveQueue([]); } catch (_) {}
+  try { localStorage.removeItem('saufapp_pending_nickname'); } catch (_) {}
+  await sb.auth.signOut();
+  profileCache = null;
+}
+
 function saveLocalConfig({ url, anonKey }) {
   localStorage.setItem('saufapp_supabase_url', (url || '').trim());
   localStorage.setItem('saufapp_supabase_anon_key', (anonKey || '').trim());
@@ -379,6 +403,8 @@ const api = {
   saveLocalConfig,
   yearMonthBerlin,
   computeSessionPoints,
+  exportMyData,
+  deleteAccount,
 };
 
 export default api;
