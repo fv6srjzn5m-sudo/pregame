@@ -19,8 +19,10 @@ src/ranking/
   index.js                 Supabase-Client: Auth, Score-Submit, Ranking-Abruf, Offline-Queue
 
 supabase/
-  schema.sql                Datenbank-Schema + RLS-Policies + RPCs (Quelle der Wahrheit für die DB)
-  cron_close_month.sql       pg_cron-Job, der am Monatsende den Sieger/die Siegerin ermittelt
+  migrations/                Versionierte Schema-Migrationen (Supabase CLI), Quelle der Wahrheit
+                              für die DB - siehe DATA-MODEL.md für den Workflow. Enthält u.a.
+                              Datenbank-Schema, RLS-Policies, RPCs und den pg_cron-Job, der am
+                              Monatsende den Sieger/die Siegerin ermittelt.
 
 scripts/
   download-player-photos.mjs  Lädt Spielerfotos für das "Aufstellung"-Spiel
@@ -75,8 +77,8 @@ Grund: `AVSpeechSynthesizer` (TTS) und Speech Recognition (STT) kollidieren auf 
 Es gibt **kein eigenes Backend** im klassischen Sinn (kein Node/Express-Server o. ä.). Die einzige serverseitige Logik liegt direkt in Supabase:
 
 - **Auth:** Supabase Auth (E-Mail/Passwort), Client-seitig über `@supabase/supabase-js` in `src/ranking/index.js`.
-- **Geschäftslogik als Postgres-Funktionen (RPC):** `ensure_profile`, `submit_session_score`, `get_de_ranking`, `get_my_month_stats`, `get_previous_month_winner`, `close_month`, `create_group`, `join_group`, `list_my_groups`, `get_group_ranking` — alle in `supabase/schema.sql`, alle `security definer` mit serverseitiger Validierung (z. B. Punkte-Clamp 0–80, Rate-Limit 20 Submits/Stunde).
-- **Zugriffsschutz:** Row Level Security auf allen Tabellen — Details in `supabase/schema.sql`, Bewertung in `AUDIT.md` (Phase 9).
+- **Geschäftslogik als Postgres-Funktionen (RPC):** `ensure_profile`, `submit_session_score`, `get_de_ranking`, `get_my_month_stats`, `get_previous_month_winner`, `close_month`, `create_group`, `join_group`, `list_my_groups`, `get_group_ranking` — alle in `supabase/migrations/`, alle `security definer` mit serverseitiger Validierung (z. B. Punkte-Clamp 0–80, Rate-Limit 20 Submits/Stunde).
+- **Zugriffsschutz:** Row Level Security auf allen Tabellen — Details in `supabase/migrations/`, Bewertung in `AUDIT.md` (Phase 9).
 - **Offline-Fähigkeit:** `src/ranking/index.js` puffert Score-Events lokal (`saufapp_ranking_queue_v1` in `localStorage`) und sendet sie, wenn wieder eine Verbindung besteht.
 
 **Was noch lokal/gerätegebunden ist (bewusst, siehe `DATA-MODEL.md`):** Spielernamen der aktuellen Runde, laufender Rundenzustand, Schluckzähler — diese verlassen das Gerät nicht.

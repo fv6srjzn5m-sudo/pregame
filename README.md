@@ -19,7 +19,7 @@ Zielgruppe/Store-Einstufung sind zum Zeitpunkt dieses Dokuments **noch nicht fin
 | Entwicklung | Cursor (Editor), Xcode (iOS-Build/Deployment) |
 
 Externe Dienste, die die App aktuell kontaktiert:
-- **Supabase** (`https://uhsidpjaikqtfcohvwcl.supabase.co`) — Community-Ranking, siehe [`supabase/schema.sql`](./supabase/schema.sql)
+- **Supabase** (`https://uhsidpjaikqtfcohvwcl.supabase.co`) — Community-Ranking, siehe [`supabase/migrations/`](./supabase/migrations/)
 - **Google Cloud Text-to-Speech** — nur falls die Nutzerin/der Nutzer freiwillig einen eigenen API-Key in den Einstellungen hinterlegt (wird lokal auf dem Gerät gespeichert, nicht an PreGame-Server übertragen)
 
 ## Projekt lokal starten
