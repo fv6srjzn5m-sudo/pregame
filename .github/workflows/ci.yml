@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install-and-build:
+    name: Install & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Baut die Web-Version (saufapp.html -> www/) und das Ranking-Bundle (esbuild).
+      # Faengt kaputte Imports/Pfade in src/ranking/ und fehlende Assets frueh ab.
+      - run: npm run prepare-www
+      # cap sync ios kopiert die Web-Assets in die native Shell und aktualisiert die
+      # Capacitor-Plugin-Liste. WICHTIG: Auf diesem Linux-Runner sind CocoaPods/Xcode
+      # nicht installiert, "cap sync" ueberspringt "pod install" und den Xcode-Clean-
+      # Schritt dann mit einer Warnung (kein Fehler). Das prueft also Konfiguration,
+      # Asset-Kopie und Plugin-Erkennung - aber NICHT, ob das native iOS-Projekt
+      # tatsaechlich mit Xcode baut. Der echte Xcode-Build bleibt manueller Teil von
+      # Phase 4.4 (vor jedem Release auf echtem Geraet testen). Ein optionaler
+      # macOS-Runner-Job fuer den vollen Xcode-Build ist ein moeglicher naechster
+      # Schritt, sobald CD (Phase 4.3) angegangen wird - macOS-Runner kosten
+      # deutlich mehr Actions-Minuten, deshalb hier bewusst nicht default an.
+      - run: npx cap sync ios
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  audit:
+    name: npm audit (high+)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+  secret-scan:
+    name: Secret Scan (Gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # volle History, nicht nur der letzte Commit - sonst werden
+                          # Secrets in aelteren Commits eines PRs uebersehen
+      # Bewusst die gitleaks-CLI direkt installiert statt der "gitleaks-action" von
+      # gitleaks/gitleaks-action - deren Wrapper-Action verlangt fuer Organisationen
+      # eine kommerzielle Lizenz (GITLEAKS_LICENSE). Die gitleaks-CLI selbst ist MIT-
+      # lizenziert und komplett kostenlos, auch fuer Firmen/Organisationen.
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          VERSION="$(curl -sSL https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name | sed 's/^v//')"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: Run gitleaks
+        run: gitleaks detect --source . --log-opts="--all" --redact -v

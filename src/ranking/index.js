@@ -85,8 +85,10 @@ function makeEventId() {
  * PreGame-Score aus einer beendeten Session.
  * Nur der eingeloggte Gerätenutzer bekommt Punkte.
  */
-function computeSessionPoints({ gameKey, players, winner, startSnapshot, durationSec }) {
-  const nick = (profileCache?.nickname || '').trim().toLowerCase();
+function computeSessionPoints({ gameKey, players, winner, startSnapshot, durationSec }, nicknameOverride) {
+  // nicknameOverride ist ein Test-Seam (siehe index.test.js) - im Normalbetrieb ungenutzt,
+  // dann zaehlt wie bisher ausschliesslich der eingeloggte Nickname aus profileCache.
+  const nick = (nicknameOverride ?? profileCache?.nickname ?? '').trim().toLowerCase();
   let matched = null;
   if (nick) {
     matched = (players || []).find(p => (p.name || '').trim().toLowerCase() === nick) || null;

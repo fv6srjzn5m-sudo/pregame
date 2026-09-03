@@ -1,12 +1,15 @@
 {
   "name": "pregame",
   "version": "1.0.0",
+  "type": "module",
   "description": "PreGame - Saufspiel-App mit Kumpel-Charakter, als natives iOS-Projekt via Capacitor verpackt",
   "private": true,
   "scripts": {
     "build:ranking": "npx esbuild src/ranking/index.js --bundle --format=iife --global-name=PreGameRankingBundle --outfile=www/ranking.js && node -e \"const fs=require('fs'); const p='www/ranking.js'; let s=fs.readFileSync(p,'utf8'); if(!s.includes('window.PreGameRanking')) s+='\\nwindow.PreGameRanking=PreGameRankingBundle.default||PreGameRankingBundle;\\n'; fs.writeFileSync(p,s);\"",
     "prepare-www": "mkdir -p www && cp saufapp.html www/index.html && cp manifest.json www/manifest.json && rm -rf www/assets && cp -R assets www/assets && cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js && cp node_modules/@aparajita/capacitor-secure-storage/dist/plugin.js www/secure-storage.js && npm run build:ranking",
-    "cap:sync": "npm run prepare-www && npx cap sync ios"
+    "cap:sync": "npm run prepare-www && npx cap sync ios",
+    "lint": "eslint .",
+    "test": "node --test \"src/**/*.test.js\""
   },
   "keywords": [],
   "author": "",
@@ -21,6 +24,8 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.2",
-    "esbuild": "^0.28.2"
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.9.1"
   }
 }
