@@ -29,11 +29,11 @@ Zwei Gründer direkt nach dem Abitur, keiner mit formaler Entwickler-Ausbildung.
 
 ## Eskalationsregel
 
-Bei Änderungen, die eines der folgenden Themen berühren: **Auth/Login/Session, Zahlungen/Abo-Status, Löschen oder Exportieren von Nutzerdaten, Altersabfrage/Alterseinstufung** — zuerst nachfragen (`AskUserQuestion` oder direkt im Chat), nicht einfach umsetzen. Diese Bereiche werden auch im PR-Review automatisch eskaliert (`.claude/review-guidelines.md`, sobald angelegt).
+Bei Änderungen, die eines der folgenden Themen berühren: **Auth/Login/Session, Zahlungen/Abo-Status, Löschen oder Exportieren von Nutzerdaten, Altersabfrage/Alterseinstufung** — zuerst nachfragen (`AskUserQuestion` oder direkt im Chat), nicht einfach umsetzen. Diese Bereiche werden auch im automatischen PR-Review eskaliert (`.claude/review-guidelines.md`).
 
 ## Weiterführende Dokumente
 
 - `ARCHITECTURE.md` — Ordnerstruktur, State-Management, Plugin-Anbindung
 - `CONSULTING.md` — wie eine Frage an den Berater gestellt wird
 - `DATA-MODEL.md`, `INFRASTRUCTURE.md`, `DESIGN-SYSTEM.md`, `AUDIO.md`, `AUDIT.md`, `STATUS.md` — entstehen in den folgenden Setup-Phasen (`PREGAME-SETUP-INSTRUCTIONS.md`)
-- `.claude/review-guidelines.md` — Fokus für automatisierte PR-Reviews (Phase 3)
+- `.claude/review-guidelines.md` — Fokus für automatisierte PR-Reviews: Severity-Schema (`CRITICAL`/`WARNING`/`NIT`), was gesucht und was ignoriert wird
