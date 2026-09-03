@@ -2918,6 +2918,9 @@
     position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
     font-size: 22px; font-weight: 300; line-height: 1; opacity: 0.95;
   }
+  /* Ladezustand fuer Auth-Aktionen (Login/Register/Nickname speichern) - verhindert
+     Doppel-Submit waehrend die Supabase-Anfrage laeuft (siehe DESIGN-SYSTEM.md, Loading-State). */
+  .rk-cta.is-busy { opacity: 0.55; }
 
   .rk-banner {
     width: 100%; padding: 12px 14px; border-radius: 16px; margin-bottom: 12px;
@@ -13375,7 +13378,7 @@ const RankingUI = (() => {
           </div>
           ${fieldHtml({ id: 'rk-login-email', type: 'email', placeholder: t('rk_email'), autocomplete: 'email', icon: 'mail' })}
           ${fieldHtml({ id: 'rk-login-pass', type: 'password', placeholder: t('rk_password'), autocomplete: 'current-password', icon: 'lock', eye: true })}
-          ${ctaBtn(t('rk_login_btn'), 'RankingUI.login()')}
+          ${ctaBtn(t('rk_login_btn'), 'RankingUI.login(this)')}
         </div>
         <div class="rk-or">${escapeHtml(t('rk_or'))}</div>
         <div class="rk-auth-card is-register">
@@ -13386,7 +13389,7 @@ const RankingUI = (() => {
           ${fieldHtml({ id: 'rk-reg-nick', type: 'text', placeholder: t('rk_nickname'), autocomplete: 'nickname', icon: 'user' })}
           ${fieldHtml({ id: 'rk-reg-email', type: 'email', placeholder: t('rk_email'), autocomplete: 'email', icon: 'mail' })}
           ${fieldHtml({ id: 'rk-reg-pass', type: 'password', placeholder: t('rk_password'), autocomplete: 'new-password', icon: 'lock', eye: true })}
-          ${ctaBtn(t('rk_register_btn'), 'RankingUI.register()', 'btn-blue')}
+          ${ctaBtn(t('rk_register_btn'), 'RankingUI.register(this)', 'btn-blue')}
         </div>
         <div class="rk-status" id="rk-account-status"></div>
         <p class="rk-legal">${t('rk_legal_html')}</p>`;
@@ -13401,7 +13404,7 @@ const RankingUI = (() => {
         </div>
         <p class="muted" style="font-size:13px;margin:0 0 8px;">${escapeHtml(user.email || '')}</p>
         ${fieldHtml({ id: 'rk-nick-edit', type: 'text', placeholder: t('rk_nickname'), autocomplete: 'nickname', icon: 'user' })}
-        ${ctaBtn(t('rk_save_nick'), 'RankingUI.saveNick()')}
+        ${ctaBtn(t('rk_save_nick'), 'RankingUI.saveNick(this)')}
         <div class="btn btn-ghost" style="margin-top:10px;" onclick="RankingUI.logout()">${escapeHtml(t('rk_logout_btn'))}</div>
         <div class="btn btn-ghost" style="margin-top:10px;" onclick="RankingUI.exportData()">${escapeHtml(t('rk_export_btn'))}</div>
         <div class="btn btn-danger" style="margin-top:10px;" onclick="RankingUI.deleteAccount()">${escapeHtml(t('rk_delete_account_btn'))}</div>
@@ -13429,7 +13432,17 @@ const RankingUI = (() => {
     showAlert(t(kind === 'privacy' ? 'rk_privacy_soon' : 'rk_terms_soon'));
   }
 
-  async function login() {
+  /* Verhindert Doppel-Submit waehrend eine Auth-Anfrage laeuft (Loading-State,
+     siehe DESIGN-SYSTEM.md) - ohne das koennte ein zweiter Tap auf "Einloggen"
+     waehrend der ersten, noch offenen Supabase-Anfrage abgeschickt werden. */
+  function setBusy(el, busy) {
+    if (!el) return;
+    el.classList.toggle('is-busy', busy);
+    el.style.pointerEvents = busy ? 'none' : '';
+  }
+
+  async function login(btn) {
+    setBusy(btn, true);
     try {
       await R().login({
         email: document.getElementById('rk-login-email')?.value.trim(),
@@ -13439,10 +13452,13 @@ const RankingUI = (() => {
       renderAccount();
     } catch (err) {
       setStatus(mapErr(err), false);
+    } finally {
+      setBusy(btn, false);
     }
   }
 
-  async function register() {
+  async function register(btn) {
+    setBusy(btn, true);
     try {
       const res = await R().register({
         email: document.getElementById('rk-reg-email')?.value.trim(),
@@ -13453,16 +13469,21 @@ const RankingUI = (() => {
       else { setStatus('OK', true); renderAccount(); }
     } catch (err) {
       setStatus(mapErr(err), false);
+    } finally {
+      setBusy(btn, false);
     }
   }
 
-  async function saveNick() {
+  async function saveNick(btn) {
+    setBusy(btn, true);
     try {
       await R().setNickname(document.getElementById('rk-nick-edit')?.value.trim());
       setStatus('OK', true);
       renderAccount();
     } catch (err) {
       setStatus(mapErr(err), false);
+    } finally {
+      setBusy(btn, false);
     }
   }
 
