@@ -73,3 +73,26 @@ Stichprobenartig geprüft, nicht erschöpfend:
 | `:focus-visible` für Tastatur/Screenreader | 🟡 Offen, niedrige Priorität für Party-App |
 | WCAG-Kontrastprüfung über alle Look×Theme-Kombinationen | 🟡 Offen, wird in `AUDIT.md` vermerkt |
 | Screenweise Loading/Empty/Error/Offline-Prüfung aller ~20 Screens | 🟡 Offen, nicht erschöpfend gemacht |
+
+## 7. Button-Zuordnungstabelle (Audit-Runde 2, Abschnitt 2.4)
+
+**Auftrag vom Berater:** Zuerst nur eine Zuordnungstabelle (10 bestehende Varianten → 4 semantische Rollen `primary`/`secondary`/`ghost`/`danger` × 2 Größen), zur Prüfung durch euch und den Berater. **Noch kein Umbau** — das passiert erst nach eurer Freigabe.
+
+**Erst geprüft, was tatsächlich benutzt wird** (Verwendungen im Code gezählt, nicht angenommen):
+
+| Bestehende Klasse | Nutzungen | Vorgeschlagene Rolle | Begründung |
+|---|---|---|---|
+| `.btn-primary` | 35× | **primary** | Bereits die Haupt-Aktion (Pink-Gradient), passt 1:1. |
+| `.btn-secondary` | 16× | **secondary** | Bereits die Neben-Aktion (Blau-Gradient), passt 1:1. |
+| `.btn-ghost` | 6× | **ghost** | Bereits transparent/unauffällig, passt 1:1. |
+| `.btn-danger` | 7× | **danger** | Bereits Rot/destruktiv, passt 1:1. |
+| `.btn-blue` | 2× (nur `RankingUI`: Registrieren, Gruppe beitreten) | **secondary** | Fast identisches Blau wie `.btn-secondary`, aber mit **hartcodierten Hex-Werten** statt Design-Tokens (`#1AC6FF`/`#0E8FCC` statt `var(--blue)`/`var(--blue-dark)`) — sieht aus wie eine versehentliche Dopplung, kein bewusster Unterschied. Konsolidieren behebt nebenbei auch einen Token-Verstoß. |
+| `.btn-purple` | 3× (nur Busfahrer-Finale: "Karten aufdecken"/"weiter") | **primary** | Funktional die Haupt-Weiter-Aktion an dieser Stelle, nur mit spielspezifischer Akzentfarbe eingefärbt. Wenn die Lila-Einfärbung bewusst gewünscht ist (Wiedererkennung für dieses eine Spiel), wäre das eine bewusste Ausnahme, keine neue Rolle. |
+| `.btn-green` | **0×** | *entfällt* | Nur in der CSS definiert, nirgends im Markup verwendet — toter Code. |
+| `.btn-yellow` | **0×** | *entfällt* | Gleicher Fund — toter Code. |
+| `.btn-dark` | **0×** | *entfällt* | Gleicher Fund — toter Code. Kommentar im CSS deutet an, dass er mal für eine "echte Kartenfarbe" (Busfahrer) gedacht war, wird aber aktuell nirgends aufgerufen. |
+| `.btn-sm` | 3× | *keine Rolle — Größen-Modifikator* | Das ist die zweite Dimension ("× zwei Größen"), kein eigener Stil. Bleibt als `-sm`-Zusatzklasse zu jeder der 4 Rollen bestehen. |
+
+**Ergebnis der Zuordnung:** Von 10 Klassen bleiben **4 Rollen + 1 Größen-Modifikator**. `.btn-blue` und `.btn-purple` verschmelzen mit bestehenden Rollen, drei Klassen (`.btn-green/.btn-yellow/.btn-dark`) können ersatzlos gelöscht werden, weil sie nichts mehr betreffen.
+
+**Offene Frage an euch/den Berater, bevor umgebaut wird:** Soll `.btn-purple` beim Busfahrer-Finale seine lila Akzentfarbe behalten (als bewusste Ausnahme innerhalb der `primary`-Rolle, z. B. über ein Modifier-Attribut), oder komplett auf Standard-Pink vereinheitlicht werden? Das ist eine Design-Entscheidung, keine technische.
