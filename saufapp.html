@@ -7351,9 +7351,21 @@ function renderPlayers() {
   const recentNames = getRecentNames().filter(n => !currentNames.has(n.toLowerCase()));
   if (recentNames.length > 0) {
     recentWrap.style.display = 'block';
-    document.getElementById('recent-names-chips').innerHTML = recentNames.map(n =>
-      `<div class="target-chip" onclick="quickAddPlayer('${n.replace(/'/g, "\\'")}')">${escapeHtml(n)}</div>`
-    ).join('');
+    /* Sicherheits-Fix (Audit-Runde 2, Stufe 1): vorher wurde der Name per String-Interpolation
+       in ein onclick-Attribut eingesetzt (nur ' escaped, nicht "). escapeHtml() haette das NICHT
+       repariert - die Funktion escaped keine Anfuehrungszeichen, nur <, > und &, ist also fuer
+       HTML-Text sicher, aber nicht fuer Attribut-Werte. Deshalb hier komplett ohne String-in-
+       Attribut-Interpolation gebaut: DOM-API + addEventListener, der Name bleibt ein reiner
+       JS-Wert im Closure, landet nie als Text in HTML/Attribut-Syntax. */
+    const chipsWrap = document.getElementById('recent-names-chips');
+    chipsWrap.innerHTML = '';
+    recentNames.forEach(n => {
+      const chip = document.createElement('div');
+      chip.className = 'target-chip';
+      chip.textContent = n;
+      chip.addEventListener('click', () => quickAddPlayer(n));
+      chipsWrap.appendChild(chip);
+    });
   } else {
     recentWrap.style.display = 'none';
   }
