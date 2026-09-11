@@ -6070,6 +6070,11 @@ const COMMENTS = {
   },
 };
 
+/* getComment() escaped absichtlich NICHT selbst (wie t()) - wird an manchen Stellen per
+   .textContent gesetzt (dort wuerde serverseitiges Escapen Sonderzeichen wie "&" falsch
+   als Text anzeigen). Aufrufer, die das Ergebnis per innerHTML einsetzen, MUESSEN selbst
+   escapeHtml(...) drumlegen - siehe renderResults() fuer das Muster nach dem echten Fund
+   unten (Audit-Runde 2, Abschnitt 2.1). */
 function getComment(type, vars) {
   const pool = linesFor(COMMENTS)[type] || ['...'];
   let text = pool[Math.floor(Math.random() * pool.length)];
@@ -7436,7 +7441,7 @@ function renderResults() {
       <div class="trophy">🏆</div>
       <div class="name">${escapeHtml(winner.name)}</div>
       <div class="pts">${t('results_points_sips', { score: winner.score, sips: winner.sips })}</div>
-      <div class="comment">${getComment('winner', { playerName: winner.name })}</div>
+      <div class="comment">${escapeHtml(getComment('winner', { playerName: winner.name }))}</div>
     </div>` : '';
 
   if (winner) buddyReactWin(winner.name);

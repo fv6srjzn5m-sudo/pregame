@@ -4,6 +4,51 @@ import { SUPABASE_CONFIG } from './config.js';
 const QUEUE_KEY = 'saufapp_ranking_queue_v1';
 const MAX_QUEUE = 40;
 
+/* Sicherheits-Fix (Audit-Runde 2, Abschnitt 2.1, mit Freigabe umgesetzt): Supabase-
+   Session-Tokens lagen bisher in window.localStorage statt im sicheren Gerätespeicher
+   (Keychain auf iOS via Capacitor SecureStorage) - genau das gleiche Muster, das schon
+   fuer den Google-API-Key in saufapp.html (getSecureStoragePlugin()) verwendet wird.
+   Faellt auf localStorage zurueck, wenn das Plugin fehlt (Browser/PWA, oder falls die
+   native Keychain-Anbindung selbst scheitert) - Fallback ist bewusst, kein Bug.
+   WICHTIG: Bereits eingeloggte Personen werden beim Umstieg einmalig ausgeloggt, weil
+   der alte Token unter dem neuen Storage-Backend nicht mehr gefunden wird - akzeptierte
+   einmalige Nebenwirkung, kein laufendes Risiko. */
+function getSecureStoragePlugin() {
+  try {
+    return (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.Plugins
+      && window.Capacitor.Plugins.SecureStorage) || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+const secureSessionStorage = {
+  async getItem(key) {
+    const SS = getSecureStoragePlugin();
+    if (SS) {
+      try {
+        const value = await SS.get(key);
+        return typeof value === 'string' ? value : (value == null ? null : String(value));
+      } catch (_) { /* Fallback unten */ }
+    }
+    try { return window.localStorage.getItem(key); } catch (_) { return null; }
+  },
+  async setItem(key, value) {
+    const SS = getSecureStoragePlugin();
+    if (SS) {
+      try { await SS.set(key, value); return; } catch (_) { /* Fallback unten */ }
+    }
+    try { window.localStorage.setItem(key, value); } catch (_) {}
+  },
+  async removeItem(key) {
+    const SS = getSecureStoragePlugin();
+    if (SS) {
+      try { await SS.remove(key); return; } catch (_) { /* Fallback unten */ }
+    }
+    try { window.localStorage.removeItem(key); } catch (_) {}
+  },
+};
+
 function configFromStorage() {
   try {
     const url = localStorage.getItem('saufapp_supabase_url') || '';
@@ -33,7 +78,7 @@ function getClient() {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: false,
-        storage: window.localStorage,
+        storage: secureSessionStorage,
       },
     });
   }
