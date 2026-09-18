@@ -2,7 +2,7 @@
 
 Abschluss-Deliverable des Setups aus `PREGAME-SETUP-INSTRUCTIONS.md`. Zustand jeder Phase, alle offenen Punkte sortiert danach, wer sie klären muss. Für Madalin (Berater) gedacht: hier reicht ein Blick, um den kompletten Stand zu verstehen, ohne durch den Chat-Verlauf zu scrollen.
 
-**Kurzfassung:** Das Setup (alle 11 Schritte) ist durch. Der Code ist in einem soliden, dokumentierten Zustand — keine offene Sicherheitslücke gefunden. **Nicht launch-fähig ist die App aktuell wegen zweier rechtlicher Blocker** (fehlende Rechtsdokumente, ungeklärte Altersfreigabe), nicht wegen des Codes. Mehrere technische Punkte brauchen einmaligen Zugriff der Gründer (GitHub-Settings, Supabase-Dashboard), bevor der nächste Schritt automatisiert werden kann.
+**Kurzfassung:** Das Setup (alle 11 Schritte) ist durch. Inzwischen ist zusätzlich eine zweite, unabhängige Audit-Runde abgeschlossen (`AUDIT-2.md`, `PLAN.md`, `TODO.md`) — 13 Prüf-Agenten, 4 Bewertungs-Agenten (inkl. eines bewusst kritischen Gegenprüfers) und 2 gezielte Nachverifikationen. Ergebnis: **keine neue Möglichkeit für Fremdzugriff, Kontoübernahme oder Datenpanne** — die Codebasis bleibt in dieser Hinsicht solide. Aber die Aussage "nicht launch-fähig nur wegen rechtlicher Blocker, nicht wegen des Codes" stimmt **nicht mehr uneingeschränkt**: Zwei echte technische Launch-Blocker sind dazugekommen (Hell-Modus macht die 18+-Altersabfrage unsichtbar; keine Möglichkeit, eine Community-Gruppe zu verlassen), dazu mehrere Punkte mit echter, aber stiller Auswirkung auf Ranking-Punkte. Details, Priorisierung und konkrete Aufgabenliste: siehe `AUDIT-2.md` (Ergebnis), `PLAN.md` (Reihenfolge/Begründung), `TODO.md` (abhakbare Liste in 4 Blöcken).
 
 ---
 
@@ -17,10 +17,11 @@ Abschluss-Deliverable des Setups aus `PREGAME-SETUP-INSTRUCTIONS.md`. Zustand je
 | 5b | Datenbank-Entscheidung | ✅ Fertig | Bestätigt: Mitspieler-Namen verlassen das Gerät nicht. SQL-Bug gefunden+gefixt (doppelte `close_month`-Funktion). Migrations-Workflow eingerichtet. **Offen bei euch:** Supabase-CLI verlinken. |
 | 6 | Infrastruktur-Bestandsaufnahme | ✅ Fertig | Größte Lücke: kein Error-Tracking. Zweitgrößte: nur ein Supabase-Projekt (keine Dev/Staging-Trennung). |
 | 5 | Recht & Datenschutz (technisch) | ✅ Fertig | Art. 15/17 (Auskunft/Löschung) gebaut, dabei einen echten Gruppen-Lösch-Bug gefixt. Rechtsdokumente-Lücke bewusst nicht mit erfundenem Text gefüllt → Issue #1. |
-| 7 | Design-System | ✅ Fertig | Token-System existierte bereits, mit echten Zahlen geprüft (Spacing-Tokens 0× genutzt trotz Definition). Loading-State-Bug bei Login/Registrieren gefunden+gefixt. |
-| 7b | Audio | ✅ Fertig | Ist-Zustand entspricht bereits der Empfehlung (Geräte-TTS). Audio-Interruption-Bug in Swift gefunden+gefixt (ungetestet, kein Xcode hier verfügbar). Asset-Pipeline-Gerüst für später. |
+| 7 | Design-System | 🟡 Fertig, aber Screen-Durchgang **offen** | Token-System existierte bereits, mit echten Zahlen geprüft (Spacing-Tokens 0× genutzt trotz Definition). Loading-State-Bug bei Login/Registrieren gefunden+gefixt. Audit-Runde 2 fand zusätzlich einen echten Hell-Modus-Fund (unsichtbare Knöpfe, siehe `AUDIT-2.md`) — der vollständige Loading/Empty/Error/Offline-Durchgang über alle ~20 Screens war und ist weiterhin nur stichprobenartig geprüft, Status bewusst auf "offen" zurückgesetzt. |
+| 7b | Audio | 🟡 Fertig, aber Fix **offen/ungetestet** | Ist-Zustand entspricht bereits der Empfehlung (Geräte-TTS). Audio-Interruption-Bug in Swift gefunden+committet, aber **nie auf echtem Gerät/Xcode verifiziert** — Status bewusst auf "offen" zurückgesetzt, bis das nachgeholt ist (siehe Audit-Runde 2, `PLAN.md`). Asset-Pipeline-Gerüst für später. |
 | 8.2–8.5 | Skills & Hooks | ✅ Fertig | 6 Skills (`security-check`, `new-component`, `privacy-impact`, `release-check`, `explain-to-founder`, `full-audit`), 3 Hooks (`.env`-Schutz, Auto-Lint, Session-Status) — alle einzeln getestet. |
 | 9 | Voll-Audit | ✅ Fertig | `AUDIT.md`. 2 `CRITICAL`-Findings als GitHub-Issues, 6 `WARNING`-Findings dokumentiert. Kein aktueller Sicherheits-Exploit gefunden. |
+| — | **Audit-Runde 2** (unabhängige Zweitprüfung) | ✅ Prüfung fertig, Umsetzung offen | `AUDIT-2.md`/`PLAN.md`/`TODO.md`. 13+4+2 Agenten in 3 Stufen. 2 neue echte technische Launch-Blocker gefunden (18+-Abfrage im Hell-Modus unsichtbar, keine Möglichkeit eine Gruppe zu verlassen), 10 weitere Funde mit echter Auswirkung, mehrere ursprüngliche Verdachtsfälle nach Gegenprüfung entkräftet. Keine neue Sicherheitslücke. Noch offen: Stufe 5 (Plan gemeinsam mit euch durchgehen) und Abschnitt 4 der Berater-Vorgabe (Grundsatzfragen → `GOALS.md`). |
 
 ---
 
@@ -64,21 +65,25 @@ Abschluss-Deliverable des Setups aus `PREGAME-SETUP-INSTRUCTIONS.md`. Zustand je
 
 ### Nur auf echtem Gerät verifizierbar (kein Xcode/Device hier verfügbar)
 
-- Der Audio-Interruption-Fix in `AppDelegate.swift` (Testanruf während einer Ansage)
-- Der vollständige Loading/Empty/Error/Offline-Durchgang über alle ~20 Screens (nur stichprobenartig geprüft, siehe `DESIGN-SYSTEM.md`)
-- WCAG-Kontrast über alle 4 Looks × 2 Theme-Modi
+- **Offen (zurückgesetzt nach Audit-Runde 2):** Der Audio-Interruption-Fix in `AppDelegate.swift` (Testanruf während einer Ansage) — committet, aber nie getestet.
+- **Offen (zurückgesetzt nach Audit-Runde 2):** Der vollständige Loading/Empty/Error/Offline-Durchgang über alle ~20 Screens — nur stichprobenartig geprüft (siehe `DESIGN-SYSTEM.md`, `AUDIT-2.md`). Dabei wurde auch der Hell-Modus nie durchgeklickt — genau dort steckte der neue Fund.
+- WCAG-Kontrast über alle 4 Looks × 2 Theme-Modi — nur teilweise/stichprobenartig geprüft (siehe `AUDIT-2.md`).
 
 ---
 
 ## Dateien, die jetzt existieren
 
-`README.md`, `ARCHITECTURE.md`, `CONSULTING.md`, `CLAUDE.md`, `DATA-MODEL.md`, `INFRASTRUCTURE.md`, `DESIGN-SYSTEM.md`, `AUDIO.md`, `AUDIT.md`, `STATUS.md` (diese Datei), `audio/lines.json`, `.claude/` (5 Skills + `full-audit` + Hooks + Settings), `.github/workflows/` (`ci.yml`, `claude-code-review.yml`, `claude-mention.yml` — CD-Workflow fehlt noch, bewusst).
+`README.md`, `ARCHITECTURE.md`, `CONSULTING.md`, `CLAUDE.md`, `DATA-MODEL.md`, `INFRASTRUCTURE.md`, `DESIGN-SYSTEM.md`, `AUDIO.md`, `AUDIT.md`, `BRIEFING.md`, `SKILL-GAPS.md`, `AUDIT-2.md`, `PLAN.md`, `TODO.md`, `STATUS.md` (diese Datei), `audio/lines.json`, `.claude/` (6 Skills + `full-audit` + Hooks + Settings), `.github/workflows/` (`ci.yml`, `claude-code-review.yml`, `claude-mention.yml` — CD-Workflow fehlt noch, bewusst).
+
+Noch nicht erstellt: `GOALS.md` (Abschnitt 4 der Audit-Runde-2-Vorgabe — Grundsatzfragen an euch beide, noch nicht gestellt).
 
 ## Empfohlene Reihenfolge für die nächsten Schritte
 
+**Aktuell wichtiger als die Liste unten: `TODO.md` durchgehen, insbesondere Block C** (4 Entscheidungen, die mehrere technische Fixes blockieren). Danach:
+
 1. GitHub-Repo-Einstellungen (10 Minuten, siehe oben) — damit die Pipeline überhaupt scharf ist.
-2. Rechtsdokumente (Issue #1) anstoßen — das blockiert den Launch am längsten, je früher begonnen, desto besser.
+2. Rechtsdokumente (Issue #1) anstoßen — das blockiert den Launch am längsten, je früher begonnen, desto besser. **Vorher Block C (`TODO.md`) klären**, sonst wird der Text später ein zweites Mal geschrieben.
 3. Altersfreigabe-Frage (Issue #2) parallel beim Anwalt anfragen.
-4. Supabase-Dashboard-Punkte (Backup-Test, Region, AVV) — einmalig, dann erledigt.
+4. Supabase-Dashboard-Punkte (Backup-Test, Region, AVV, CLI verlinken) — einmalig, dann erledigt, siehe `TODO.md` Block B.
 5. Error-Tracking einrichten lassen — größter technischer Hebel für "wir merken, wenn was kaputt ist".
 6. Vor dem ersten echten Release: `.claude/skills/release-check/` durchgehen und `.claude/skills/full-audit/` erneut laufen lassen.
