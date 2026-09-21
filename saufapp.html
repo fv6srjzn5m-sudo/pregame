@@ -4217,6 +4217,7 @@
     <div id="results-list"></div>
     <div id="round-stats-grid"></div>
     <p class="muted" id="loser-comment" style="text-align:center; font-style:italic;"></p>
+    <p class="muted" id="community-points-status" style="text-align:center; display:none;"></p>
     <div class="spacer"></div>
     <div class="btn btn-primary" onclick="goTo('gameselect')" data-i18n="results_next_game">Weiter zum nächsten Spiel</div>
     <button type="button" class="text-link" onclick="goTo('home')" data-i18n="results_home">Zur Startseite</button>
@@ -7499,6 +7500,13 @@ function renderResults() {
   document.getElementById('loser-comment').textContent =
     (loser && winner && loser.id !== winner.id) ? getComment('loser', { playerName: loser.name }) : '';
 
+  // Eigenes Element fuer die Community-Punkte-Rueckmeldung (Audit-Runde 2, Fund B5) -
+  // vorher wurde dafuer #loser-comment zweitverwendet, das aber ab 2 Spielern durch den
+  // Verlierer-Spruch praktisch immer schon belegt ist, wodurch die Rueckmeldung nie
+  // sichtbar wurde. Bei jedem neuen Rundenergebnis erstmal zuruecksetzen.
+  const pointsStatusEl = document.getElementById('community-points-status');
+  if (pointsStatusEl) { pointsStatusEl.textContent = ''; pointsStatusEl.style.display = 'none'; }
+
   const statsGrid = document.getElementById('round-stats-grid');
   if (roundStats.correctCount + roundStats.wrongCount > 0) {
     const sipsThisRound = state.players.reduce((sum, p) => {
@@ -7565,8 +7573,8 @@ function reportCommunitySession(sorted, winner) {
     const n = res.awarded != null ? res.awarded : (res.event && res.event.points);
     if (n == null) return;
     const key = res.queued ? 'rk_points_queued' : 'rk_points_awarded';
-    const el = document.getElementById('loser-comment');
-    if (el && !el.textContent) el.textContent = t(key, { n });
+    const el = document.getElementById('community-points-status');
+    if (el) { el.textContent = t(key, { n }); el.style.display = 'block'; }
   }).catch(() => {});
 }
 function renderLeaderboard() {
