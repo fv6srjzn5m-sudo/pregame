@@ -22,6 +22,10 @@
 <script src="secure-storage.js"></script>
 <!-- Community-Ranking (Supabase) – gebündelt via npm run build:ranking -->
 <script src="ranking.js"></script>
+<!-- Fehler-Tracking (Sentry) – gebündelt via npm run build:error-tracking. Bleibt inaktiv
+     (kein Netzwerkzugriff) solange src/error-tracking/config.js kein DSN hat, siehe TODO.md B-11.
+     So frueh wie moeglich geladen, damit auch Fehler beim restlichen Seitenaufbau erfasst werden. -->
+<script src="error-tracking.js"></script>
 
 <!-- Lokale Fonts (kein Google-CDN beim Start → offline + Privacy). -->
 <link rel="stylesheet" href="assets/fonts/fonts.css">

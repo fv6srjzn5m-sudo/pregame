@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "build:ranking": "npx esbuild src/ranking/index.js --bundle --format=iife --global-name=PreGameRankingBundle --outfile=www/ranking.js && node -e \"const fs=require('fs'); const p='www/ranking.js'; let s=fs.readFileSync(p,'utf8'); if(!s.includes('window.PreGameRanking')) s+='\\nwindow.PreGameRanking=PreGameRankingBundle.default||PreGameRankingBundle;\\n'; fs.writeFileSync(p,s);\"",
-    "prepare-www": "mkdir -p www && cp saufapp.html www/index.html && cp manifest.json www/manifest.json && rm -rf www/assets && cp -R assets www/assets && cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js && cp node_modules/@aparajita/capacitor-secure-storage/dist/plugin.js www/secure-storage.js && npm run build:ranking",
+    "build:error-tracking": "npx esbuild src/error-tracking/index.js --bundle --format=iife --global-name=PreGameErrorTracking --outfile=www/error-tracking.js",
+    "prepare-www": "mkdir -p www && cp saufapp.html www/index.html && cp manifest.json www/manifest.json && rm -rf www/assets && cp -R assets www/assets && cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js && cp node_modules/@aparajita/capacitor-secure-storage/dist/plugin.js www/secure-storage.js && npm run build:ranking && npm run build:error-tracking",
     "cap:sync": "npm run prepare-www && npx cap sync ios",
     "lint": "eslint .",
     "test": "node --test \"src/**/*.test.js\""
@@ -20,6 +21,7 @@
     "@capacitor-community/text-to-speech": "^8.0.2",
     "@capacitor/core": "8.4.2",
     "@capacitor/ios": "^8.4.2",
+    "@sentry/browser": "^10.75.1",
     "@supabase/supabase-js": "^2.112.4"
   },
   "devDependencies": {

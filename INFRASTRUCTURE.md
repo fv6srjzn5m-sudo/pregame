@@ -2,7 +2,7 @@
 
 Phase 6 des Projekt-Setups. **Nur Analyse und Dokumentation** — hier wird nichts umgebaut, nur der Ist-Zustand jeder Schicht festgestellt und ein konkreter nächster Schritt vorgeschlagen. Priorisiert, nicht alles gleichzeitig angehen.
 
-**Realistische Priorisierung für dieses Team:** Auth → RLS → Error Tracking → serverseitige Abo-Validierung → Backups → Rate Limiting. Der Rest folgt, wenn es echte Nutzer gibt. Ergebnis dieser Bestandsaufnahme vorweg: **Auth und RLS sind bereits solide**, **Error Tracking ist die größte echte Lücke** — nichts ist eingerichtet, ein Absturz bei einer Nutzerin/einem Nutzer bleibt aktuell komplett unsichtbar.
+**Realistische Priorisierung für dieses Team:** Auth → RLS → Error Tracking → serverseitige Abo-Validierung → Backups → Rate Limiting. Der Rest folgt, wenn es echte Nutzer gibt. Ergebnis dieser Bestandsaufnahme vorweg: **Auth und RLS sind bereits solide**. **Error Tracking** war die größte echte Lücke — ist seit Audit-Runde 2 (21.09.2026) code-seitig eingerichtet (`@sentry/browser`, PII-gefiltert), aber noch inaktiv, bis Bastian ein Sentry-Projekt anlegt (B-11) und deckt außerdem nur JS-Fehler ab, keine nativen iOS-Abstürze (siehe Punkt 12).
 
 ## 1. Frontend-Foundations
 
@@ -86,11 +86,11 @@ Phase 6 des Projekt-Setups. **Nur Analyse und Dokumentation** — hier wird nich
 
 ## 12. Error Tracking & Logs
 
-**Ist-Zustand: Nichts eingerichtet.** Kein Sentry, kein Crash-Reporting, kein zentrales Logging — geprüft (keine Treffer für "Sentry" oder ähnliche SDKs im Code). Ein Absturz oder ein Fehler bei einer echten Nutzerin/einem echten Nutzer ist für euch aktuell **komplett unsichtbar**, es sei denn, sie/er meldet es euch direkt.
+**Ist-Zustand (aktualisiert nach Audit-Runde 2, 21.09.2026): Code-seitig eingerichtet, aber inaktiv.** `@sentry/browser` ist installiert und in `src/error-tracking/` eingebunden (`config.js` fürs DSN, `index.js` fürs Setup inkl. PII-Filterung über `beforeSend`/`beforeBreadcrumb` — Spielernamen aus Eingabefeldern, Nutzer-/Request-Kontext werden vor dem Versand entfernt, keine Session-Replays/Performance-Traces). Solange `src/error-tracking/config.js` kein DSN enthält, ruft die App `Sentry.init()` gar nicht erst auf — kein Netzwerkzugriff, kein Fehlerfall, browser-verifiziert (Playwright: keine Sentry-Netzwerkaufrufe ohne DSN).
 
-**Das ist die größte reale Lücke aus dieser Bestandsaufnahme.**
+**Was noch fehlt, bevor es wirklich etwas meldet:** Ein echtes Sentry-Projekt mit DSN (`TODO.md`, B-11 — Bastian legt ein Konto an, gibt Claude Code den DSN).
 
-**Nächster Schritt (hohe Priorität):** Sentry einrichten (hat ein Capacitor-kompatibles SDK, `@sentry/capacitor` + `@sentry/browser` darunter). **Wichtig beim Einrichten (siehe `CLAUDE.md`-Regel Datenminimierung):** Keine personenbezogenen Daten in den Logs — Spielernamen, E-Mail-Adressen o. ä. müssen aus Fehlermeldungen/Breadcrumbs herausgefiltert werden, bevor sie an Sentry gehen (Sentry bietet dafür `beforeSend`-Hooks). Das ist eine bewusste Konfigurationsentscheidung beim Einrichten, kein nachträglicher Fix.
+**Wichtige Einschränkung, ehrlich benannt:** Das deckt nur JavaScript-Fehler in der WebView ab (genau die Art Fehler, die diese Audit-Runde gefunden hat — falsche Punkteberechnung, UI-Bugs etc.). **Native Abstürze auf iOS-Ebene (Swift/AppDelegate) werden davon NICHT erfasst** — dafür bräuchte es `@sentry/capacitor` statt/zusätzlich zu `@sentry/browser`, was Änderungen am nativen Xcode-Projekt braucht. Das konnte hier nicht gebaut/getestet werden (kein Xcode verfügbar, gleiche Einschränkung wie beim Audio-Interruption-Fix) — bewusst zurückgestellt, nicht vergessen.
 
 ## 13. Availability & Recovery
 
@@ -103,7 +103,7 @@ Phase 6 des Projekt-Setups. **Nur Analyse und Dokumentation** — hier wird nich
 | Priorität | Schicht | Nächster Schritt | Wer |
 |---|---|---|---|
 | ✅ Bereits gut | Auth (4), RLS (8) | Nur noch die Korrektheitsprüfung in Phase 9 | — |
-| 🔴 Hoch | Error Tracking (12) | Sentry einrichten, PII aus Logs filtern | Ich, sobald ihr sagt "los" |
+| 🟡 Mittel | Error Tracking (12) | Code fertig, PII-Filterung eingebaut — braucht nur noch einen echten DSN (B-11) | Bastian (Sentry-Konto), dann aktiv |
 | 🟡 Mittel | Hosting/Umgebungstrennung (5) | Zweites Supabase-Projekt für Dev/Staging, vor dem ersten echten Launch | Ihr (Supabase-Account) + ich fürs Code-seitige |
 | 🟡 Mittel | Backups (3/13) | Dashboard prüfen, Restore testen | Ihr (Dashboard-Zugriff) |
 | ⚪ Später | Abo-Validierung (2) | Erst wenn IAP gebaut wird — dann sofort serverseitig | Ihr entscheidet, wann IAP kommt |

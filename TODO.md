@@ -113,12 +113,13 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Eskalationsregel:** ja (Löschen von Nutzerdaten).
 - **Status (21.09.2026):** `delete_my_account()` setzt `nickname`/`winner_nickname` jetzt in allen drei Tabellen (`month_winners`, `month_closures`, `month_close_runs`) vor der Löschung auf "Ehemaliges Mitglied", **bevor** `auth.users` gelöscht wird (sonst wäre die Zeile über `user_id` nicht mehr auffindbar). Gleiche Migration wie A-7/A-8. **Noch nicht live getestet** — braucht B-1 + B-4 (Löschfunktion einmal echt testen).
 
-### A-13 · Error-Tracking einrichten
+### A-13 · Error-Tracking einrichten — ✅ CODE FERTIG (21.09.2026), noch inaktiv ohne DSN
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. ein halber Tag, plus Konto-Anlage durch Bastian (→ B-11)
 - **Warum hier:** `AUDIT-2.md` sagt es deutlich — die Funde dieser Runde sind Fehler, die **stillschweigend** falsch laufen. Ohne Error-Tracking merkt im Livebetrieb niemand, wenn so etwas erneut passiert. Das ist laut `INFRASTRUCTURE.md` die größte technische Infrastruktur-Lücke.
 - **Bedingung:** Muss **von Anfang an** mit Filterung personenbezogener Daten konfiguriert werden, nicht nachträglich (`AUDIT.md`).
 - **Hängt ab von:** nichts inhaltlich.
+- **Status:** `@sentry/browser` installiert, `src/error-tracking/{config.js,index.js}` geschrieben (eigener Build-Schritt `npm run build:error-tracking`, in `saufapp.html` eingebunden). PII-Filterung eingebaut (Klick-/Eingabe-Breadcrumbs, Nutzer-/Request-Kontext werden vor dem Versand entfernt, keine Session-Replays/Performance-Traces). Solange `config.js` kein DSN hat, bleibt es inaktiv — Browser-verifiziert (Playwright): kein Netzwerkzugriff, kein zusätzlicher Fehler. **Deckt nur JS-Fehler in der WebView ab, keine nativen iOS-Abstürze** (dafür bräuchte es zusätzlich `@sentry/capacitor` mit Xcode-Integration — hier nicht baubar, siehe `INFRASTRUCTURE.md` Punkt 12). **Braucht B-11**, um wirklich etwas zu melden.
 
 ### A-14 · Spielstand überlebt das Beenden der App im Hintergrund
 - **Priorität:** NACH LAUNCH
@@ -205,8 +206,9 @@ Diese Punkte brauchen Zugriff auf Konten, die Claude Code nicht hat. Klickwege s
 ### B-11 · Konto für Error-Tracking anlegen
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. 15 Minuten
-- **Klickweg:** Bei Sentry (oder einem gleichwertigen Dienst) ein Konto/Projekt anlegen und den Projekt-Schlüssel an Claude Code geben — **als GitHub-Secret, nicht in den App-Code** (Regel 2 in `CLAUDE.md`).
-- **Warum:** Voraussetzung für A-13. Serverstandort mitprüfen — der Dienst gehört später in die Datenschutzerklärung.
+- **Klickweg:** Auf sentry.io ein kostenloses Konto + Projekt anlegen (Plattform "Browser JavaScript"), dabei **Serverstandort/Datenregion EU wählen**, falls angeboten (gehört später in die Datenschutzerklärung). Sentry zeigt danach einen DSN (eine URL, sieht aus wie `https://abc123@o000.ingest.sentry.io/000`) — den an Claude Code weitergeben.
+- **Wichtig zur Einordnung:** Ein DSN ist **kein Geheimnis** wie ein Passwort — er erlaubt nur, Fehlerberichte zu *senden*, nicht bestehende Daten zu *lesen*. Er kommt deshalb direkt in `src/error-tracking/config.js` (wie der Supabase-Schlüssel in `src/ranking/config.js`), **nicht** als GitHub-Secret.
+- **Warum:** Voraussetzung für A-13 (Code ist bereits fertig und wartet nur auf diesen einen Wert).
 
 ---
 

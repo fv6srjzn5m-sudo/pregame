@@ -85,4 +85,4 @@ Es gibt **kein eigenes Backend** im klassischen Sinn (kein Node/Express-Server o
 
 ## Build-Pipeline
 
-`saufapp.html` ist die Quelle. `npm run prepare-www` kopiert sie 1:1 nach `www/index.html`, kopiert Assets/Manifest/Plugin-JS dazu und baut `src/ranking/index.js` per esbuild zu `www/ranking.js`. `npm run cap:sync` führt das aus und synchronisiert danach die native iOS-Shell (`npx cap sync ios`). `www/` selbst ist nicht im Repo — es ist reines Build-Output.
+`saufapp.html` ist die Quelle. `npm run prepare-www` kopiert sie 1:1 nach `www/index.html`, kopiert Assets/Manifest/Plugin-JS dazu und baut `src/ranking/index.js` sowie `src/error-tracking/index.js` per esbuild zu `www/ranking.js` bzw. `www/error-tracking.js`. `npm run cap:sync` führt das aus und synchronisiert danach die native iOS-Shell (`npx cap sync ios`). `www/` selbst ist nicht im Repo — es ist reines Build-Output.
