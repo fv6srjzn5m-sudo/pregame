@@ -4731,9 +4731,11 @@ const I18N = {
     settings_tts_provider_label: 'Stimmquelle',
     settings_tts_provider_desc: 'Bei Fehlern springt der Kumpel automatisch zurück zur nativen Stimme',
     settings_tts_provider_native: 'Nativ (Gerät)', settings_tts_provider_google: 'Google Cloud (extern)',
-    google_tts_info: 'Der API-Key wird auf dem iPhone im Keychain gespeichert (nicht im Klartext in localStorage). ' +
-      'Er wird für Google Cloud TTS und optional für die KI-Bewertung im Vokabelspiel (Gemini) genutzt. ' +
-      'Google berechnet Nutzung nach Verbrauch. Bei Fehlern springt die App auf die native Stimme bzw. lokale Bewertung zurück.',
+    google_tts_info: '⚠️ Mit dieser Stimme gehen Daten an Google: Ansage-Texte können Mitspieler-Namen enthalten ' +
+      '(z. B. „Anna räumt ab!"), und im Vokabelspiel werden die Rateversuche aller Mitspieler zur Bewertung an ' +
+      'Google gesendet (Gemini). Der API-Key wird auf dem iPhone im Keychain gespeichert (nicht im Klartext in ' +
+      'localStorage). Google berechnet Nutzung nach Verbrauch. Bei Fehlern springt die App auf die native Stimme ' +
+      'bzw. lokale Bewertung zurück.',
     google_api_key_placeholder: 'Google Cloud API-Key',
     settings_save_tts_provider: 'Speichern',
     alert_google_key_missing: 'Bitte zuerst einen Google Cloud API-Key eintragen.',
@@ -5150,7 +5152,9 @@ const I18N = {
     settings_tts_provider_label: 'Voice source',
     settings_tts_provider_desc: 'On errors, the buddy automatically falls back to the native voice',
     settings_tts_provider_native: 'Native (device)', settings_tts_provider_google: 'Google Cloud (external)',
-    google_tts_info: 'On iPhone the API key is stored in the Keychain (not plain localStorage). It is used for Google Cloud TTS and optionally for AI judging in the vocab game (Gemini). Google Cloud charges ' +
+    google_tts_info: '⚠️ Using this voice sends data to Google: spoken announcements can include player names ' +
+      '(e.g. "Anna wins!"), and in the vocab game, every player\'s guesses are sent to Google for judging ' +
+      '(Gemini). On iPhone the API key is stored in the Keychain (not plain localStorage). Google Cloud charges ' +
       'per usage. If a request fails (invalid key, no network, rate limit), the app falls back to the native voice or local judging.',
     google_api_key_placeholder: 'Google Cloud API key',
     settings_save_tts_provider: 'Save',
@@ -13118,10 +13122,14 @@ const Vokabel = (() => {
    Anbindung: Google-Key vorhanden und Call erfolgreich -> KI-Ergebnis, sonst automatisch
    der lokale Fallback - das Spiel bleibt so ohne jeden Schlüssel voll spielbar. */
 async function judgeGuesses(entry, guesses) {
-  const apiKey = getSettings().googleApiKey;
-  if (apiKey) {
+  const s = getSettings();
+  // Entscheidung C-3 (Audit-Runde 2, 21.09.2026): Gemini nur anfragen, wenn die Google-
+  // Stimme auch tatsaechlich aktiv gewaehlt ist -- nicht nur weil irgendwann mal ein Key
+  // eingetragen wurde. Sonst schickt die App weiterhin Rateversuche der Mitspieler an
+  // Google, obwohl die Person die Google-Stimme laengst wieder abgeschaltet hat.
+  if (s.ttsProvider === 'google' && s.googleApiKey) {
     try {
-      const ranked = await judgeWithGemini(entry, guesses, apiKey);
+      const ranked = await judgeWithGemini(entry, guesses, s.googleApiKey);
       if (ranked) return ranked;
     } catch (e) { /* fällt durch zum Fallback */ }
   }
