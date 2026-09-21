@@ -47,13 +47,14 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Konsequenz, wenn es liegen bleibt:** Schlucke und Punkte zweier gleichnamiger Spieler vermischen sich in der lokalen Bestenliste, und im Community-Ranking kann die falsche Person getroffen werden.
 - **Hängt ab von:** nichts.
 
-### A-5 · Gruppe verlassen + stärkere Einladungscodes + Bremse (A2 + B6)
+### A-5 · Gruppe verlassen + stärkere Einladungscodes + Bremse (A2 + B6) — ✅ CODE FERTIG (21.09.2026), noch nicht eingespielt
 - **Priorität:** VOR LAUNCH (technischer Launch-Blocker)
 - **Aufwand:** ca. ein halber bis ganzer Tag (Datenbank-Funktion + Knopf in der App + Codelänge + Bremse), plus Einspielen durch Bastian (→ B-1)
 - **Was:** Es gibt aktuell **keine** Möglichkeit, eine Community-Gruppe zu verlassen — weder in der App noch auf dem Server. Gleichzeitig hat der Einladungscode nur 65.536 mögliche Varianten (`PRE-` + 4 Zeichen), und auf dem Beitritt liegt keine Bremse. Alle Codes durchzuprobieren ist eine Sache von Minuten.
 - **Konsequenz, wenn es liegen bleibt:** Wer versehentlich oder durch Erraten in einer fremden Gruppe landet, kommt nur durch **komplette Löschung des eigenen Kontos** wieder raus. Zusätzlich kann das Anlegen neuer Gruppen serverseitig in eine Endlosschleife laufen, wenn der Codevorrat ausgeschöpft ist.
 - **Umfang:** neue Server-Funktion `leave_group` (entfernt nur den eigenen Zugang, serverseitig geprüft), Knopf in der Oberfläche, Codelänge auf 6–8 Zeichen, Bremse auf dem Beitritt nach dem Muster, das bei der Punkte-Einreichung schon existiert.
 - **Hängt ab von:** nichts inhaltlich; zum Ausrollen aber von **B-1** (Supabase-CLI verlinkt).
+- **Status:** Migration `supabase/migrations/20260921000001_leave_group_and_stronger_codes.sql`: Einladungscode auf 8 Hex-Zeichen verlängert (16^8 ≈ 4,3 Mrd. statt 65.536 Kombinationen, macht auch das Endlosschleifen-Risiko hinfällig), `join_group()` bekommt dasselbe Rate-Limit-Muster wie `submit_session_score()` (max. 20/Stunde), neue `leave_group(p_group_id)`-RPC (löscht bei letztem Mitglied gleich die ganze Gruppe mit, statt eine leere Karteileiche mit gültigem Code liegen zu lassen). Client: `leaveGroup()` in `src/ranking/index.js` + "Gruppe verlassen"-Knopf im Gruppen-Detail-Screen (mit Bestätigungsdialog). Browser-verifiziert (Playwright): Knopf erscheint, keine Fehler. **Noch nicht live gegen echte Datenbank getestet** — braucht B-1.
 
 ### A-6 · Eigenes Anzeigefeld für "Punkte gespeichert/offline" (B5)
 - **Priorität:** VOR LAUNCH

@@ -4768,6 +4768,10 @@ const I18N = {
     rk_delete_account_yes: 'Endgültig löschen',
     rk_delete_account_done: 'Konto gelöscht.',
     rk_delete_account_failed: 'Löschen fehlgeschlagen. Bitte später erneut versuchen.',
+    rk_leave_group_button: 'Gruppe verlassen',
+    rk_leave_group_confirm: 'Diese Gruppe wirklich verlassen? Du kannst später erneut mit dem Einladungscode beitreten.',
+    rk_leave_group_yes: 'Verlassen',
+    rk_leave_group_failed: 'Verlassen fehlgeschlagen. Bitte später erneut versuchen.',
     rk_save_nick: 'Nickname speichern',
     rk_logged_in_as: 'Eingeloggt als {nick}',
     rk_need_login: 'Logge dich ein, um am Ranking teilzunehmen',
@@ -5188,6 +5192,10 @@ const I18N = {
     rk_delete_account_yes: 'Delete permanently',
     rk_delete_account_done: 'Account deleted.',
     rk_delete_account_failed: 'Deletion failed. Please try again later.',
+    rk_leave_group_button: 'Leave group',
+    rk_leave_group_confirm: 'Leave this group? You can rejoin later with the invite code.',
+    rk_leave_group_yes: 'Leave',
+    rk_leave_group_failed: 'Could not leave the group. Please try again later.',
     rk_save_nick: 'Save nickname',
     rk_logged_in_as: 'Signed in as {nick}',
     rk_need_login: 'Log in to join the ranking',
@@ -13407,6 +13415,22 @@ const RankingUI = (() => {
     } catch (err) {
       panel.innerHTML = `<p class="rk-empty">${escapeHtml(mapErr(err))}</p>`;
     }
+    panel.innerHTML += `
+      <button type="button" class="text-link" style="color:var(--danger);" onclick="RankingUI.leaveGroup()">${escapeHtml(t('rk_leave_group_button'))}</button>`;
+  }
+
+  function leaveGroup() {
+    if (!activeGroup) return;
+    const groupId = activeGroup.id;
+    showConfirm(t('rk_leave_group_confirm'), async () => {
+      try {
+        await R().leaveGroup(groupId);
+        activeGroup = null;
+        goTo('ranking'); // ruft RankingUI.render() bereits selbst auf (siehe goTo())
+      } catch (err) {
+        showAlert(t('rk_leave_group_failed'));
+      }
+    }, t('rk_leave_group_yes'), t('common_cancel'));
   }
 
   async function renderAccount() {
@@ -13572,7 +13596,7 @@ const RankingUI = (() => {
 
   return {
     setTab, render, renderAccount, renderGroupDetail,
-    saveSetup, createGroup, joinGroup, openGroup, openGroupEl,
+    saveSetup, createGroup, joinGroup, leaveGroup, openGroup, openGroupEl,
     login, register, saveNick, logout, togglePass, showLegal,
     exportData, deleteAccount,
   };

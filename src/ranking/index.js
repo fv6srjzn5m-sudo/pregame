@@ -370,6 +370,13 @@ async function joinGroup(code) {
   return data;
 }
 
+async function leaveGroup(groupId) {
+  const sb = getClient();
+  if (!sb) throw new Error('not_configured');
+  const { error } = await sb.rpc('leave_group', { p_group_id: groupId });
+  if (error) throw error;
+}
+
 async function listMyGroups() {
   const sb = getClient();
   if (!sb) throw new Error('not_configured');
@@ -448,6 +455,7 @@ const api = {
   getPreviousMonthWinner,
   createGroup,
   joinGroup,
+  leaveGroup,
   listMyGroups,
   getGroupRanking,
   saveLocalConfig,
