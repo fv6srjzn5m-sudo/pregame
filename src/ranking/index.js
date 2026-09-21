@@ -241,6 +241,11 @@ async function login({ email, password }) {
 async function logout() {
   const sb = getClient();
   if (!sb) return;
+  // Entscheidung C-4 (Audit-Runde 2, 21.09.2026): noch nicht uebertragene Punkte
+  // beim Ausloggen verwerfen statt behalten -- sonst koennten sie beim naechsten
+  // Login (z.B. einer anderen Person auf einem geteilten Geraet) der falschen
+  // Person gutgeschrieben werden. Gleiche Zeile wie in deleteAccount().
+  try { saveQueue([]); } catch (_) {}
   await sb.auth.signOut();
   profileCache = null;
 }

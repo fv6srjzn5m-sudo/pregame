@@ -7072,6 +7072,12 @@ function confirmLeaveGame() {
 
 const ALCOHOL_FREE_GAMES = ['kniffel', 'stadtlandfluss'];
 const AGE_RESTRICTED_GAMES = ['sags', 'machs'];
+/* Diese Spiele veraendern im Trink-Modus nie den Punktestand (nur Schlucke) - ohne diese
+   Liste wuerde renderResults() bei echtem 0:0-Gleichstand per stabiler Sortierung immer
+   denselben (zuerst eingetragenen) Spieler zum "Sieger" kueren und ihm einen unverdienten
+   Pokal + 20 Community-Ranking-Punkte geben. Entscheidung C-2 (Audit-Runde 2, 21.09.2026):
+   lieber gar keinen Punktesieger in diesen Spielen als einen zufaelligen/unfairen. */
+const NO_SCORE_WINNER_GAMES = ['maexchen', 'busfahrer', 'seveneleven', 'hochtief', 'koffer'];
 
 /* Einzige Datenquelle fuer die Spielauswahl (Redesign) - Name/Beschreibung bleiben in den
    bestehenden game_<key>_name/_desc i18n-Keys, hier nur Icon/Kategorie/Spielerzahl. */
@@ -7455,7 +7461,11 @@ function nextPlayerIndex(list, currentIndex, step) {
 
 function renderResults() {
   const sorted = [...state.players].sort((a, b) => b.score - a.score);
-  const winner = sorted[0];
+  // Nur im Trink-Modus ist der Punktestand bei diesen fuenf Spielen bedeutungslos (siehe
+  // NO_SCORE_WINNER_GAMES oben) - im Punkte-Modus zaehlen dort echte Strafpunkte, ein
+  // Sieger ist dann weiterhin aussagekraeftig.
+  const hasScoreWinner = state.mode === 'points' || !NO_SCORE_WINNER_GAMES.includes(state.currentGame);
+  const winner = hasScoreWinner ? sorted[0] : null;
   const loser = sorted[sorted.length - 1];
 
   document.getElementById('winner-card-wrap').innerHTML = winner ? `
@@ -8849,12 +8859,17 @@ const Busfahrer = (() => {
   }
 
   function goToFinal() {
-    // Busfahrer = wer die meisten Karten NICHT losgeworden ist
+    // Busfahrer = wer die meisten Karten NICHT losgeworden ist. Bei Gleichstand (bei 6+
+    // Spielern haeufig) zufaellig unter den Gleichstaendigen ziehen statt immer den
+    // zuerst eingetragenen Spieler zu treffen (Audit-Runde 2, Fund I).
     let maxRemaining = -1;
+    let tied = [];
     g.hands.forEach((hand, i) => {
       const remaining = 3 - hand.playedCount;
-      if (remaining > maxRemaining) { maxRemaining = remaining; g.busDriverIndex = i; }
+      if (remaining > maxRemaining) { maxRemaining = remaining; tied = [i]; }
+      else if (remaining === maxRemaining) { tied.push(i); }
     });
+    g.busDriverIndex = tied[randInt(0, tied.length - 1)];
     g.phase = 'final';
     g.finalCards = Array.from({ length: FINAL_TARGET }, () => drawCard());
     g.finalRevealIndex = 0;
