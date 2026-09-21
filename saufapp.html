@@ -56,6 +56,10 @@
     --text-2: #BBBACA;
     --text-3: #85849A;
     --text-disabled: #66657A;
+    /* Fuer Elemente mit fest weissem Hintergrund (z.B. Wuerfel), die sich nicht mit dem
+       Theme mitdrehen -- bewusst NICHT im Light-Theme-Block ueberschrieben, damit der
+       Text unabhaengig vom Theme immer auf hellem Grund lesbar bleibt. */
+    --text-on-light-surface: #1A1A2E;
 
     --border: rgba(255,255,255,0.10);
     --border-purple: rgba(151,71,255,0.35);
@@ -234,7 +238,7 @@
   html, body {
     margin: 0; padding: 0; height: 100%;
     background: var(--bg);
-    color: white;
+    color: var(--text);
     font-family: var(--font);
     overscroll-behavior: none;
   }
@@ -362,7 +366,7 @@
   /* Einheitliche Screen-Typografie */
   .screen-title {
     font-size: 30px; font-weight: 800; margin: 4px 0 8px;
-    letter-spacing: -0.02em; line-height: 1.15; color: #fff;
+    letter-spacing: -0.02em; line-height: 1.15; color: var(--text);
   }
   .screen-sub {
     margin: 0 0 20px; font-size: 15px; line-height: 1.4; color: var(--muted);
@@ -409,7 +413,7 @@
     background: linear-gradient(135deg, var(--blue), var(--blue-dark));
     color: #061018; box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), 0 10px 28px rgba(22,184,243,0.22);
   }
-  .btn-ghost { background: rgba(255,255,255,0.04); color: white; border-color: var(--border); }
+  .btn-ghost { background: rgba(255,255,255,0.04); color: var(--text); border-color: var(--border); }
   .btn-danger {
     background: linear-gradient(135deg, var(--danger), #C22850);
     color: white; box-shadow: 0 8px 20px -4px rgba(255,71,111,0.4);
@@ -1019,7 +1023,7 @@
   .player-avatar {
     width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 16px; color: var(--bg);
+    font-weight: 800; font-size: 16px; color: var(--text-on-light-surface);
   }
   .remove-btn {
     width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
@@ -1230,7 +1234,7 @@
   .current-player { display: flex; align-items: center; gap: 10px; }
   .avatar {
     width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center;
-    justify-content: center; font-weight: 800; font-size: 17px; color: var(--bg); flex-shrink: 0;
+    justify-content: center; font-weight: 800; font-size: 17px; color: var(--text-on-light-surface); flex-shrink: 0;
     box-shadow: 0 4px 12px -3px rgba(0,0,0,0.5);
   }
   .score-pill { font-size: 12px; color: var(--muted); }
@@ -1238,7 +1242,7 @@
      (Laender, Fussball-Legenden) - bewusst keine echten Fotos/Logos (Rechte). */
   .content-avatar {
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 800; color: var(--bg); flex-shrink: 0; margin: 0 auto 6px;
+    font-weight: 800; color: var(--text-on-light-surface); flex-shrink: 0; margin: 0 auto 6px;
     box-shadow: 0 4px 12px -3px rgba(0,0,0,0.5);
   }
   .content-avatar-lg { width: 56px; height: 56px; font-size: 22px; }
@@ -1405,7 +1409,7 @@
   .dice-row { display: flex; justify-content: center; gap: 16px; margin: 22px 0; }
   .die {
     width: 76px; height: 76px; border-radius: 20px; position: relative;
-    background: linear-gradient(145deg, #ffffff, #d6dae8); color: var(--bg);
+    background: linear-gradient(145deg, #ffffff, #d6dae8); color: var(--text-on-light-surface);
     display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 800;
     box-shadow: 0 8px 0 rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.9), inset 0 -6px 10px rgba(0,0,0,0.08);
   }
@@ -2644,7 +2648,7 @@
   .penalty-sips-big { font-size: 44px; font-weight: 900; color: white; margin: 6px 0 4px; }
   .penalty-message { color: rgba(255,255,255,0.85); font-size: 14px; margin-bottom: 22px; }
   .penalty-ok-btn {
-    background: white; color: var(--bg); font-weight: 800; padding: 16px; border-radius: 16px;
+    background: white; color: var(--text-on-light-surface); font-weight: 800; padding: 16px; border-radius: 16px;
     font-size: 16px; cursor: pointer;
   }
 
@@ -4419,6 +4423,7 @@ const I18N = {
 
     players_title: 'Mitspieler', players_subtitle: 'Mindestens 2 Spieler für eine Runde.',
     players_input_placeholder: 'Name eingeben...', players_continue: 'Weiter zur Spielauswahl',
+    players_err_duplicate: 'Diesen Namen gibt es schon in der Liste.',
     players_recent_names_title: 'Zuletzt verwendet',
     players_saved_groups_title: 'Gespeicherte Gruppen',
     players_save_group_button: '💾 Aktuelle Gruppe speichern',
@@ -4837,6 +4842,7 @@ const I18N = {
 
     players_title: 'Players', players_subtitle: 'At least 2 players for a round.',
     players_input_placeholder: 'Enter name...', players_continue: 'Continue to game selection',
+    players_err_duplicate: 'That name is already on the list.',
     players_recent_names_title: 'Recently used',
     players_saved_groups_title: 'Saved Groups',
     players_save_group_button: '💾 Save current group',
@@ -7266,6 +7272,10 @@ function addPlayer() {
   const input = document.getElementById('new-player-input');
   const name = input.value.trim();
   if (!name) return;
+  if (state.players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+    showAlert(t('players_err_duplicate'));
+    return;
+  }
   state.players.push(createPlayer(name));
   rememberPlayerName(name);
   input.value = '';
@@ -10566,7 +10576,7 @@ const Kniffel = (() => {
 
   function finishGame() {
     state.players.forEach((p, i) => {
-      p.score = playerTotal(g.scores[i]).total;
+      p.score += playerTotal(g.scores[i]).total;
     });
     endToResults();
   }

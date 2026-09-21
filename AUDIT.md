@@ -116,7 +116,7 @@ Vollständig in `DATA-MODEL.md` — dort steht pro Datenkategorie, wo sie liegt 
 
 ### Datenminimierung
 
-**Bereits geprüft in Phase 5b** (`DATA-MODEL.md`): Mitspieler-Namen verlassen das Gerät nachweislich nicht (`computeSessionPoints()` extrahiert nur die Punkte des eingeloggten Nutzers, keine Namen). Kein neuer Fund in dieser Phase.
+**Bereits geprüft in Phase 5b** (`DATA-MODEL.md`): Über den Supabase-Ranking-Pfad verlassen Mitspieler-Namen das Gerät nachweislich nicht (`computeSessionPoints()` extrahiert nur die Punkte des eingeloggten Nutzers, keine Namen). **Präzisierung aus Audit-Runde 2** (siehe `AUDIT-2.md`, Fund B9): Das gilt nur für diesen einen Pfad, nicht generell — bei aktiv eingeschalteter Google-Stimme (eigener Google-Cloud-Schlüssel, aktiv in den Einstellungen ausgewählt) werden Mitspielernamen im gesprochenen Ansagetext an Google übertragen; bei aktiver Vokabel-KI zusätzlich die Rateversuche der Mitspieler. Beides ist reines Opt-in, war bereits in `DATA-MODEL.md` korrekt beschrieben, und bleibt laut Entscheidung vom 21.09.2026 im Produkt (mit Warnhinweis vor Aktivierung, siehe `TODO.md` C-3).
 
 ### Betroffenenrechte
 
