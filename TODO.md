@@ -207,40 +207,29 @@ Diese Punkte brauchen Zugriff auf Konten, die Claude Code nicht hat. Klickwege s
 
 ## Block C — Noel und Bastian müssen gemeinsam entscheiden
 
-Das sind die vier Punkte aus `AUDIT-2.md`, Abschnitt D. Kein Code kann sie lösen, und eine falsche Annahme hier wäre teurer, als gar nichts zu tun. Jeweils die Optionen mit ihren Folgen.
+Das sind die vier Punkte aus `AUDIT-2.md`, Abschnitt D. **Alle vier sind inzwischen entschieden** (21.09.2026, direkt im Chat mit Bastian). Optionen/Folgen bleiben unten stehen, damit die Begründung nachvollziehbar bleibt.
 
-### C-1 · Was passiert mit dem Nickname eines Monatssiegers, wenn er sein Konto löscht?
-- **Priorität:** JETZT (blockiert A-12 und die Formulierung der Datenschutzerklärung)
-- **Aufwand:** ein Gespräch, ca. 15 Minuten
+### C-1 · Was passiert mit dem Nickname eines Monatssiegers, wenn er sein Konto löscht? — ✅ ENTSCHIEDEN
+- **Entscheidung: Option 2 — auf "Ehemaliges Mitglied" anonymisieren.** Sauberes, uneingeschränktes Löschversprechen. Entsperrt **A-12**.
 - **Lage heute:** Der Nickname bleibt in der Rekordliste stehen, im Klartext — auch nach der Löschung.
-- **Option 1 — so lassen:** Die Rekordliste bleibt historisch vollständig, alte Monatssieger bleiben sichtbar. **Folge:** In der Datenschutzerklärung muss dann ausdrücklich stehen, dass der Nickname in der Rekordliste bestehen bleibt. Das Löschversprechen ist dann bewusst eingeschränkt — und muss so auch formuliert werden.
-- **Option 2 — auf "Ehemaliges Mitglied" anonymisieren:** **Folge:** Sauberes, uneingeschränktes Löschversprechen, weniger Erklärbedarf gegenüber Nutzern und Anwalt. Die Rekordliste verliert dafür Namen aus der Vergangenheit.
+- Option 1 (so lassen) wäre die Alternative gewesen, hätte aber ein eingeschränktes Löschversprechen in der Datenschutzerklärung erfordert.
 - **Fällt unter die Eskalationsregel** "Löschen von Nutzerdaten" (`CLAUDE.md`).
 
-### C-2 · Wie wird bei echtem Punktegleichstand der Sieger bestimmt?
-- **Priorität:** JETZT (blockiert A-10)
-- **Aufwand:** ein Gespräch, ca. 15 Minuten
+### C-2 · Wie wird bei echtem Punktegleichstand der Sieger bestimmt? — ✅ ENTSCHIEDEN
+- **Entscheidung: Option 3 — in diesen fünf Spielen (Mäxchen, Busfahrer, 7-11-Paar, Hoch-oder-Tief, Koffer) gar keinen Pokal und keinen +20-Bonus vergeben.** Ehrlichste Variante, kein zusätzlicher Aufwand für Schluck-basierte Wertung. Entsperrt **A-10**.
 - **Lage heute:** Bei Gleichstand gewinnt immer der Spieler, der zuerst in die Namensliste eingetragen wurde — und bekommt dafür +20 Punkte im Community-Ranking.
-- **Option 1 — nach Schlucken werten:** Wer weniger trinken musste, gewinnt. **Folge:** Fühlt sich für ein Trinkspiel am fairsten an, weil Schlucke ohnehin die eigentliche "Währung" dieser Spiele sind. Aufwand mittel — die Schluck-Zählung muss in die Auswertung eingebaut werden.
-- **Option 2 — bei echtem Gleichstand zufällig ziehen:** **Folge:** Schnell umgesetzt, niemand wird systematisch bevorzugt. Nachteil: Der "Sieg" fühlt sich beliebig an, wenn es auffällt.
-- **Option 3 — in diesen fünf Spielen gar keinen Pokal und keinen +20-Bonus vergeben:** **Folge:** Ehrlichste Variante — in diesen Spielen gibt es schlicht keinen Punktesieger. Nachteil: Diese Spiele zahlen dann nicht mehr aufs Community-Ranking ein, das könnte sie unattraktiver machen.
-- **Nebenfrage, die ihr mitentscheiden solltet:** Soll der +20-Ranking-Bonus in diesen Spielen überhaupt an den Pokal gekoppelt sein?
+- Optionen 1 (nach Schlucken werten) und 2 (zufällig bei Gleichstand) waren die Alternativen.
 
-### C-3 · Bleiben die optionalen Google-Dienste im Produkt?
-- **Priorität:** JETZT (blockiert A-11, B-10 und vor allem den **Auftrag an den Anwalt**, D-1)
-- **Aufwand:** ein Gespräch, ca. 30 Minuten
+### C-3 · Bleiben die optionalen Google-Dienste im Produkt? — ✅ ENTSCHIEDEN
+- **Entscheidung: Option 1 — beide behalten (Google-Vorlesestimme + Vokabel-KI), mit deutlichem Warnhinweis vor der Aktivierung.** Entsperrt **A-11**, fließt in **B-10** (Apple-Datenschutzangaben) und **D-1** (Datenschutzerklärung) ein.
 - **Worum es geht:** Zwei Funktionen, die nur laufen, wenn ein Nutzer aktiv einen eigenen Google-Schlüssel einträgt und einschaltet: die Google-Vorlesestimme (sendet Mitspielernamen an Google) und die Vokabel-KI (sendet die Rateversuche der Mitspieler an Google).
-- **Option 1 — beide behalten, mit deutlichem Warnhinweis:** **Folge:** Beide Datenflüsse müssen in der Datenschutzerklärung stehen, die Apple-Datenschutzangaben werden komplizierter, und ihr braucht eine Antwort auf die Frage, ob und wie ihr gegenüber Google datenschutzrechtlich dastehen wollt. Der Warnhinweis muss vor der Aktivierung erscheinen, nicht versteckt in den Einstellungen. Außerdem muss A-11 gebaut werden.
-- **Option 2 — beide entfernen:** **Folge:** Datenschutzerklärung wird deutlich einfacher und billiger, Apple-Angaben werden kürzer, A-11 entfällt komplett. Die App verliert die bessere Vorlesestimme und das Vokabelspiel. Laut `AUDIO.md` ist die Geräte-Stimme ohnehin der derzeit empfohlene Weg.
-- **Option 3 — Vorlesestimme behalten, Vokabel-KI entfernen (oder umgekehrt):** **Folge:** Mittelweg, aber achtet darauf: Beide hängen am **selben** Schlüssel. Wenn nur eine Funktion bleibt, muss die andere sauber vom Schlüssel getrennt werden, sonst bleibt genau der Fehler bestehen, den A-11 behebt.
-- **Reihenfolge wichtig:** Diese Entscheidung muss **vor** der Beauftragung der Rechtsdokumente fallen (`AUDIT-2.md`, Abschnitt E). Danach bedeutet: Der Text wird ein zweites Mal geschrieben — und ein zweites Mal bezahlt.
+- **Folge:** Beide Datenflüsse müssen in der Datenschutzerklärung stehen, die Apple-Datenschutzangaben werden entsprechend ausführlicher, und D-3 (Frage zum Umgang mit Google als Dienstleister) wird beim Anwalt relevant, nicht mehr übersprungen. Der Warnhinweis muss vor der Aktivierung erscheinen, nicht versteckt in den Einstellungen. A-11 muss gebaut werden (Vokabelspiel soll den TTS-Schalter respektieren, sonst bleibt der Schlüssel aktiv, obwohl der Nutzer glaubt, er hätte ihn deaktiviert).
+- Optionen 2 (beide entfernen) und 3 (nur eine behalten) waren die Alternativen.
 
-### C-4 · Was passiert beim Ausloggen mit noch nicht übertragenen Punkten?
-- **Priorität:** JETZT (blockiert A-9)
-- **Aufwand:** ein Gespräch, ca. 10 Minuten
+### C-4 · Was passiert beim Ausloggen mit noch nicht übertragenen Punkten? — ✅ ENTSCHIEDEN
+- **Entscheidung: Option 1 — verwerfen.** Einfach, datensparsam, keine Fehlzuordnung mehr möglich. Entsperrt **A-9**.
 - **Lage heute:** Sie bleiben liegen und landen beim nächsten eingeloggten Nutzer. Auf einem geteilten Party-Gerät ist genau das der Normalfall.
-- **Option 1 — verwerfen (Empfehlung der Prüfung):** **Folge:** Einfach, datensparsam, keine Fehlzuordnung mehr möglich. Wer sich ausloggt, bevor die Punkte übertragen wurden (typischerweise offline), verliert diese Punkte. Bei den Größenordnungen hier ist das verkraftbar.
-- **Option 2 — pro Nutzer aufbewahren und beim nächsten Login desselben Kontos nachreichen:** **Folge:** Keine Punkte gehen verloren. Dafür müssen Punkte **mit Nutzer-Zuordnung** auf dem Gerät gespeichert werden — das ist mehr gespeicherte Personenzuordnung auf einem geteilten Gerät und läuft der Datenminimierungs-Regel (Regel 6 in `CLAUDE.md`) entgegen. Deutlich mehr Aufwand und mehr Stellen, an denen etwas schiefgehen kann.
+- Option 2 (pro Nutzer aufbewahren) wäre die Alternative gewesen, hätte aber der Datenminimierungs-Regel (Regel 6, `CLAUDE.md`) entgegengelaufen.
 - **Fällt unter die Eskalationsregel** "Login/Session".
 
 ---
