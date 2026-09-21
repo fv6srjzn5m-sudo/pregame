@@ -15,16 +15,16 @@ Begründung der Reihenfolge: siehe `PLAN.md`. Hier steht nur, **was** zu tun ist
 
 Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `CLAUDE.md` greift (Auth/Session, Zahlungen, Datenlöschung/-export, Altersabfrage), wird vorher **kurz nachgefragt** — auch bei winzigen Änderungen.
 
-### A-1 · Unsichtbare Knöpfe im Hell-Modus reparieren (A1)
+### A-1 · Unsichtbare Knöpfe im Hell-Modus reparieren (A1) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** JETZT
 - **Aufwand:** ca. 1–2 Stunden inkl. optischer Nachkontrolle
 - **Was:** `color: white` ist hartcodiert und wird im Hell-Modus nirgends überschrieben. Betrifft den "Nein"-Knopf der 18+-Abfrage, "Abbrechen" beim Kontolöschen und beim Statistik-Zurücksetzen, "Ausloggen", "Meine Daten exportieren", die Würfelzahl bei allen Würfelspielen und den "OK"-Knopf nach dem Strafschluck.
 - **Konsequenz, wenn es liegen bleibt:** Nutzer im Hell-Modus sehen bei der Altersabfrage nur den roten "Ja, 18+"-Knopf — das drückt systematisch Richtung Altersbestätigung. Würfelspiele sind praktisch unspielbar, die gesetzlich vorgeschriebenen Datenschutz-Knöpfe kaum auffindbar.
 - **Hängt ab von:** nichts. Läuft **unabhängig** von der anwaltlichen Klärung zu Issue #2 — der Knopf muss sichtbar sein, egal wie die ausgeht.
 - **Eskalationsregel:** ja (Altersabfrage) → kurze Rückfrage vor Umsetzung.
-- **Danach:** von Bastian auf echtem Gerät gegenprüfen (→ B-9).
+- **Danach:** von Bastian auf echtem Gerät gegenprüfen (→ B-9). Im Browser (Playwright, Light-Theme) bereits verifiziert: Altersabfrage, Bildschirmtitel, Spieler-Avatare lesbar. **Neuer Fund dabei:** Der Einstellungen-Screen hat eigene, bisher nicht erfasste Kontrastprobleme im Hell-Modus (dunkle Formularfelder mit kaum lesbarem Text) — separat zu bewerten, nicht Teil dieses Fixes.
 
-### A-2 · Kniffel: Punkte addieren statt überschreiben (B1)
+### A-2 · Kniffel: Punkte addieren statt überschreiben (B1) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** JETZT
 - **Aufwand:** Minuten (ein Zeichen: `=` → `+=`), plus ein Testspiel
 - **Was:** Kniffel ist das einzige von 17 Minispielen, das die Punktzahl überschreibt statt aufzuaddieren.
@@ -32,7 +32,7 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Hängt ab von:** nichts.
 - **Eskalationsregel:** ja (Community-Ranking/Scoring) → kurz absprechen, auch wenn es nur ein Zeichen ist.
 
-### A-3 · Satz zu Mitspielernamen in `AUDIT.md` korrigieren (B9)
+### A-3 · Satz zu Mitspielernamen in `AUDIT.md` korrigieren (B9) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** JETZT
 - **Aufwand:** Minuten
 - **Was:** `AUDIT.md:119` sagt "Mitspieler-Namen verlassen das Gerät nachweislich nicht". Als generelle Aussage ist das nicht mehr haltbar: Bei aktiv eingeschalteter Google-Stimme (eigener Google-Schlüssel, aktiv ausgewählt) werden Mitspielernamen an Google gesendet. Sinngemäß dieselbe Aussage steht auch in `STATUS.md` (Phase 5b) und wird mit korrigiert. In `DATA-MODEL.md` war es bereits korrekt dokumentiert.
@@ -40,7 +40,7 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Hängt ab von:** nichts. Reine Dokumentenkorrektur, kein Code.
 - **Kein Widerspruch zur Datenminimierungs-Regel:** Der Versand passiert nur bei aktivem Opt-in, nicht automatisch.
 
-### A-4 · Doppelte Spielernamen beim Eintippen verhindern (B10)
+### A-4 · Doppelte Spielernamen beim Eintippen verhindern (B10) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** JETZT
 - **Aufwand:** Minuten (eine bereits vorhandene Codezeile kopieren)
 - **Was:** Das manuelle Hinzufügen prüft nur auf leere Namen, nicht auf Doppelte. Die Schnellauswahl macht es bereits richtig.
@@ -62,20 +62,22 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Konsequenz, wenn es liegen bleibt:** Nutzer sehen nie, ob ihre Punkte angekommen sind. **Entwarnung aus der Nachprüfung:** Die Punkte kommen technisch an — der befürchtete "lautlose, dauerhafte Punkteverlust" ist über normale Nutzung praktisch nicht erreichbar. Es fehlt nur die Rückmeldung.
 - **Hängt ab von:** nichts.
 
-### A-7 · Monats-Tabellen nicht mehr für Nicht-Eingeloggte lesbar machen (Teil von B4)
+### A-7 · Monats-Tabellen nicht mehr für Nicht-Eingeloggte lesbar machen (Teil von B4) — ✅ CODE FERTIG (21.09.2026), noch nicht eingespielt
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. 1 Stunde (Datenbank-Änderung), plus Einspielen durch Bastian (→ B-1)
 - **Was:** `month_closures` und `month_close_runs` sind aktuell für **jeden Besucher lesbar, auch ohne Login** — inklusive interner Fehlerprotokolle. Wird auf einen engeren Kreis eingeschränkt.
 - **Hängt ab von:** nichts. Dieser Teil ist **unabhängig** von der Nickname-Frage (C-1) und sollte nicht darauf warten.
+- **Status:** Migration `supabase/migrations/20260921000000_audit_runde_2_dsgvo_fixes.sql` geschrieben und committet (zusammen mit A-8 und A-12, wie hier vorgesehen). **Noch nicht live getestet** — braucht B-1 (Supabase-CLI verlinken), dann `supabase db push`.
 
-### A-8 · Datenauskunft um die drei Monats-Tabellen ergänzen (B7)
+### A-8 · Datenauskunft um die drei Monats-Tabellen ergänzen (B7) — ✅ CODE FERTIG (21.09.2026), noch nicht eingespielt
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. 1–2 Stunden, gehört technisch in dieselbe Datenbank-Änderung wie A-7 und A-12
 - **Was:** Der DSGVO-Auskunftsexport deckt `month_winners`, `month_closures` und `month_close_runs` nicht ab — auch für Nutzer mit bestehendem Konto.
 - **Konsequenz, wenn es liegen bleibt:** Die gesetzlich vorgeschriebene Datenauskunft ist unvollständig. Und: Eine Datenschutzerklärung, die vollständige Löschung/Auskunft verspricht, wäre so aktuell **nicht zutreffend** (siehe D-3).
 - **Eskalationsregel:** ja (Exportieren von Nutzerdaten) → kurze Rückfrage vor Umsetzung.
+- **Status:** Gleiche Migration wie A-7/A-12. `export_my_data()` erweitert um `month_winners`, `month_closures_won`, `month_close_runs_won`. **Noch nicht live getestet.**
 
-### A-9 · Ausloggen leert die Punkte-Warteschlange (B2)
+### A-9 · Ausloggen leert die Punkte-Warteschlange (B2) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** Minuten (eine Zeile), sobald die Entscheidung steht
 - **Was:** Beim Ausloggen bleiben noch nicht übertragene Punkte liegen und werden beim nächsten Login der **nächsten** Person gutgeschrieben. Auf einem geteilten Party-Gerät ist genau das der Normalfall. An anderer Stelle (Kontolöschung) wird es bereits richtig gemacht.
@@ -83,7 +85,7 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Hängt ab von:** **C-4** (was soll mit den Punkten passieren?)
 - **Eskalationsregel:** ja (Login/Session) → Rückfrage vor Umsetzung.
 
-### A-10 · Sieger-Ermittlung bei Gleichstand korrigieren (B3)
+### A-10 · Sieger-Ermittlung bei Gleichstand korrigieren (B3) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. 2–4 Stunden, je nachdem, welche Option in C-2 gewählt wird
 - **Was:** Bei Mäxchen, Busfahrer, 7-11-Paar, Hoch-oder-Tief und Koffer ändert sich die Punktzahl im Trink-Modus nie. Bei 0:0:0:0 gewinnt deshalb **immer** der zuerst eingetragene Spieler, nicht zufällig. Betrifft nachweislich auch den Punkte-Modus, wenn Strafpunkte mehrere auf 0 drücken.
@@ -92,7 +94,7 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Hängt ab von:** **C-2**
 - **Eskalationsregel:** ja (Community-Ranking/Scoring).
 
-### A-11 · Vokabelspiel muss den Google-Schalter beachten (B8)
+### A-11 · Vokabelspiel muss den Google-Schalter beachten (B8) — ✅ UMGESETZT (21.09.2026)
 - **Priorität:** VOR LAUNCH
 - **Aufwand:** ca. 1–2 Stunden, je nach Ausgang von C-3
 - **Was:** Wird die Google-Stimme in den Einstellungen wieder ausgeschaltet, bleibt der Schlüssel gespeichert — und das Vokabel-Minispiel sendet die Rateversuche der Mitspieler weiterhin an Google.
@@ -105,8 +107,9 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Aufwand:** ca. 2–3 Stunden, gehört in dieselbe Datenbank-Änderung wie A-7/A-8
 - **Was:** Der Nickname eines Monatssiegers bleibt heute nach der Kontolöschung im Klartext in der Rekordliste stehen.
 - **Wichtige Präzisierung aus der Gegenprüfung:** Die fehlende Datenbank-Verknüpfung ist **nicht** der Kern des Problems — auch mit korrekter Verknüpfung bliebe der Nickname stehen. Das ist eine Produktentscheidung, kein technischer Fehler. Die Verknüpfung wird trotzdem sauber nachgezogen.
-- **Hängt ab von:** **C-1**
+- **Hängt ab von:** **C-1** — ✅ entschieden (Anonymisieren), Code fertig
 - **Eskalationsregel:** ja (Löschen von Nutzerdaten).
+- **Status (21.09.2026):** `delete_my_account()` setzt `nickname`/`winner_nickname` jetzt in allen drei Tabellen (`month_winners`, `month_closures`, `month_close_runs`) vor der Löschung auf "Ehemaliges Mitglied", **bevor** `auth.users` gelöscht wird (sonst wäre die Zeile über `user_id` nicht mehr auffindbar). Gleiche Migration wie A-7/A-8. **Noch nicht live getestet** — braucht B-1 + B-4 (Löschfunktion einmal echt testen).
 
 ### A-13 · Error-Tracking einrichten
 - **Priorität:** VOR LAUNCH
