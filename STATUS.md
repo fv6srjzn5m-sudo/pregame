@@ -21,7 +21,7 @@ Abschluss-Deliverable des Setups aus `PREGAME-SETUP-INSTRUCTIONS.md`. Zustand je
 | 7b | Audio | 🟡 Fertig, aber Fix **offen/ungetestet** | Ist-Zustand entspricht bereits der Empfehlung (Geräte-TTS). Audio-Interruption-Bug in Swift gefunden+committet, aber **nie auf echtem Gerät/Xcode verifiziert** — Status bewusst auf "offen" zurückgesetzt, bis das nachgeholt ist (siehe Audit-Runde 2, `PLAN.md`). Asset-Pipeline-Gerüst für später. |
 | 8.2–8.5 | Skills & Hooks | ✅ Fertig | 6 Skills (`security-check`, `new-component`, `privacy-impact`, `release-check`, `explain-to-founder`, `full-audit`), 3 Hooks (`.env`-Schutz, Auto-Lint, Session-Status) — alle einzeln getestet. |
 | 9 | Voll-Audit | ✅ Fertig | `AUDIT.md`. 2 `CRITICAL`-Findings als GitHub-Issues, 6 `WARNING`-Findings dokumentiert. Kein aktueller Sicherheits-Exploit gefunden. |
-| — | **Audit-Runde 2** (unabhängige Zweitprüfung) | ✅ Prüfung fertig, Umsetzung offen | `AUDIT-2.md`/`PLAN.md`/`TODO.md`. 13+4+2 Agenten in 3 Stufen. 2 neue echte technische Launch-Blocker gefunden (18+-Abfrage im Hell-Modus unsichtbar, keine Möglichkeit eine Gruppe zu verlassen), 10 weitere Funde mit echter Auswirkung, mehrere ursprüngliche Verdachtsfälle nach Gegenprüfung entkräftet. Keine neue Sicherheitslücke. Noch offen: Stufe 5 (Plan gemeinsam mit euch durchgehen) und Abschnitt 4 der Berater-Vorgabe (Grundsatzfragen → `GOALS.md`). |
+| — | **Audit-Runde 2** (unabhängige Zweitprüfung) | ✅ Prüfung fertig, Block A vollständig umgesetzt (14/14), Block C entschieden, Abschnitt 4 beantwortet | `AUDIT-2.md`/`PLAN.md`/`TODO.md`/`GOALS.md`. 13+4+2 Agenten in 3 Stufen. 2 neue echte technische Launch-Blocker gefunden und behoben (18+-Abfrage im Hell-Modus unsichtbar, keine Möglichkeit eine Gruppe zu verlassen), 10 weitere Funde mit echter Auswirkung — alle im Code umgesetzt, 3 davon (Datenbank-Migrationen) noch nicht live eingespielt (braucht B-1). Keine neue Sicherheitslücke gefunden. Noch offen: Block B (Bastians Klickwege) und Block D (Anwalt). |
 
 ---
 
@@ -75,7 +75,7 @@ Abschluss-Deliverable des Setups aus `PREGAME-SETUP-INSTRUCTIONS.md`. Zustand je
 
 `README.md`, `ARCHITECTURE.md`, `CONSULTING.md`, `CLAUDE.md`, `DATA-MODEL.md`, `INFRASTRUCTURE.md`, `DESIGN-SYSTEM.md`, `AUDIO.md`, `AUDIT.md`, `BRIEFING.md`, `SKILL-GAPS.md`, `AUDIT-2.md`, `PLAN.md`, `TODO.md`, `STATUS.md` (diese Datei), `audio/lines.json`, `.claude/` (6 Skills + `full-audit` + Hooks + Settings), `.github/workflows/` (`ci.yml`, `claude-code-review.yml`, `claude-mention.yml` — CD-Workflow fehlt noch, bewusst).
 
-Noch nicht erstellt: `GOALS.md` (Abschnitt 4 der Audit-Runde-2-Vorgabe — Grundsatzfragen an euch beide, noch nicht gestellt).
+`GOALS.md` ist jetzt vorhanden (Abschnitt 4 der Audit-Runde-2-Vorgabe, beantwortet 21.09.2026) — enthält auch einen ehrlich benannten Reibungspunkt: der gewünschte Umfang (öffentlicher Launch, international, iOS+Android gleichzeitig) und das verfügbare Zeitbudget (nebenberuflich, wenige Stunden/Woche) passen aktuell nicht ganz zusammen, sollte bei Gelegenheit gegen `PLAN.md` geprüft werden.
 
 ## Empfohlene Reihenfolge für die nächsten Schritte
 
