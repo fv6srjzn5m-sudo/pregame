@@ -121,11 +121,14 @@ Rein technische Arbeit, kein Entscheidungsbedarf. Wo die Eskalationsregel aus `C
 - **Hängt ab von:** nichts inhaltlich.
 - **Status:** `@sentry/browser` installiert, `src/error-tracking/{config.js,index.js}` geschrieben (eigener Build-Schritt `npm run build:error-tracking`, in `saufapp.html` eingebunden). PII-Filterung eingebaut (Klick-/Eingabe-Breadcrumbs, Nutzer-/Request-Kontext werden vor dem Versand entfernt, keine Session-Replays/Performance-Traces). Solange `config.js` kein DSN hat, bleibt es inaktiv — Browser-verifiziert (Playwright): kein Netzwerkzugriff, kein zusätzlicher Fehler. **Deckt nur JS-Fehler in der WebView ab, keine nativen iOS-Abstürze** (dafür bräuchte es zusätzlich `@sentry/capacitor` mit Xcode-Integration — hier nicht baubar, siehe `INFRASTRUCTURE.md` Punkt 12). **Braucht B-11**, um wirklich etwas zu melden.
 
-### A-14 · Spielstand überlebt das Beenden der App im Hintergrund
-- **Priorität:** NACH LAUNCH
-- **Aufwand:** mehrere Tage (betrifft alle 17 Minispiele)
-- **Was:** Beendet das Betriebssystem die App im Hintergrund, ist der laufende Spielstand weg.
-- **Einordnung:** In der Gegenprüfung bewusst von CRITICAL auf "kann warten" heruntergestuft. Real, aber Kosten/Nutzen sprechen klar für nach dem Launch.
+### A-14 · Spielstand überlebt das Beenden der App im Hintergrund — ✅ TEILWEISE UMGESETZT (21.09.2026, mittlerer Umfang)
+- **Priorität:** NACH LAUNCH (ursprünglich) — auf Wunsch vorgezogen, in reduziertem, risikoärmerem Umfang umgesetzt
+- **Aufwand:** ca. 1 Tag für den gewählten mittleren Umfang (statt "mehrere Tage" für die volle Wiederherstellung aller 17 Spiele)
+- **Was:** Beendet das Betriebssystem die App im Hintergrund, war bisher der laufende Spielstand komplett weg. Zwei Teilprobleme, drei Umfang-Optionen wurden zur Wahl gestellt — gewählt: **Timer + Spielerliste/Screen merken (mittel)**.
+- **Umgesetzt:**
+  1. **Faire Timer:** Alle 6 Zeitlimit-Minispiele (Kategorien, Stadt-Land-Fluss, Flaggen, Quiz, Fußball, Aufstellungen) laufen jetzt über einen gemeinsamen, uhrzeitbasierten Countdown (`startFairCountdown()`/`stopFairCountdown()`) statt tickbasiert runterzuzählen. Bei Rückkehr aus dem Hintergrund (`visibilitychange`) wird die tatsächlich verbleibende Zeit sofort neu berechnet, statt weiter falsch zu zählen oder einzufrieren. Browser-verifiziert (Playwright): Timer erkennt simulierten Hintergrundwechsel korrekt und läuft sofort ab, wenn die Zeit eigentlich vorbei wäre; alle 6 Spiele zeigen beim Rundenstart sofort den korrekten Wert (kein kurzes Aufblitzen der alten Restzeit mehr).
+  2. **Spielerliste + Screen merken:** Neuer `state.players`+Screen-Snapshot in `localStorage` (`saveSessionSnapshot()`/`loadSessionSnapshot()`/`clearSessionSnapshot()`), gespeichert bei jedem Wechsel zu "Mitspieler" oder "Spielauswahl", verworfen bei bewusster Rückkehr zur Startseite. Beim App-Start wird ein noch gültiger (max. 6 Stunden alter) Snapshot automatisch wiederhergestellt. Browser-verifiziert (Playwright, simulierter App-Kill via Seiten-Reload): Spielerliste und Screen kommen korrekt zurück; nach bewusstem "Zur Startseite" ist der nächste Neustart wieder leer wie vorher.
+- **Bewusst NICHT umgesetzt** (das wäre die große, zurückgestellte Option gewesen): der Rundenstand *innerhalb* eines laufenden Minispiels (z. B. welche Kniffel-Kategorie schon angekreuzt war, welche Quiz-Frage gerade lief). Ein Kill mitten in einer Runde führt beim nächsten Start zur Spielauswahl mit erhaltener Spielerliste, nicht zurück mitten ins Spiel.
 - **Hängt ab von:** nichts.
 
 ---

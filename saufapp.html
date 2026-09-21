@@ -6107,6 +6107,43 @@ function getComment(type, vars) {
 
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
+/* Fairer, uhrzeitbasierter Countdown fuer die 6 Zeitlimit-Minispiele (Audit-Runde 2,
+   Fund A-14/G): Vorher zaehlten alle tickbasiert runter (g.secondsLeft-- pro Sekunden-
+   Tick). Wechselt die App waehrend eines laufenden Countdowns kurz in den Hintergrund,
+   pausiert iOS die Tick-Ausfuehrung typischerweise - die Anzeige blieb dann beim alten
+   Wert stehen und der Spieler bekam de facto geschenkte Zeit. Hier wird stattdessen ein
+   festes Ende (g._timerEndsAt) gesetzt und die tatsaechlich verbleibende Zeit bei jedem
+   Tick UND sofort beim Zurueckkommen aus dem Hintergrund (visibilitychange) anhand der
+   echten Uhrzeit neu berechnet, statt nur runtergezaehlt.
+   g bleibt der jeweilige Spiel-State (behaelt g.secondsLeft/g.timerHandle wie bisher,
+   damit bestehender Render-/Anzeige-Code unveraendert bleibt). */
+function startFairCountdown(g, durationSec, onTick, onExpire) {
+  stopFairCountdown(g);
+  g.secondsLeft = durationSec;
+  g._timerEndsAt = Date.now() + durationSec * 1000;
+
+  const tick = () => {
+    if (!g.timerHandle) return;
+    const remaining = Math.max(0, Math.ceil((g._timerEndsAt - Date.now()) / 1000));
+    g.secondsLeft = remaining;
+    if (remaining <= 0) {
+      stopFairCountdown(g);
+      onExpire();
+      return;
+    }
+    onTick();
+  };
+
+  g.timerHandle = setInterval(tick, 1000);
+  g._timerVisHandler = () => { if (document.visibilityState === 'visible') tick(); };
+  document.addEventListener('visibilitychange', g._timerVisHandler);
+}
+
+function stopFairCountdown(g) {
+  if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+  if (g._timerVisHandler) { document.removeEventListener('visibilitychange', g._timerVisHandler); g._timerVisHandler = null; }
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -6896,6 +6933,45 @@ let state = {
   mode: 'drink', // 'drink' (Standard, bisheriges Verhalten) oder 'points' (statt Schlucken werden Punkte abgezogen)
 };
 
+/* Merkt sich Mitspielerliste + zuletzt offenen Screen, damit sie einen App-Neustart
+   ueberleben (Audit-Runde 2, Fund A-14/G): Beendet iOS die App im Hintergrund (normales
+   Verhalten bei Speicherdruck), war bisher beim naechsten Oeffnen alles weg - Namen
+   muessten mitten in der Party neu eingetippt werden. Bewusst NICHT versucht wird, den
+   Rundenstand INNERHALB eines laufenden Minispiels wiederherzustellen (z.B. welche Kniffel-
+   Kategorie schon angekreuzt war) - das waere ein viel groesseres Vorhaben mit echtem
+   Risiko fuer halb wiederhergestellte, inkonsistente Zustaende (siehe PLAN.md). Ein Kill
+   waehrend eines laufenden Spiels fuehrt deshalb zurueck zur Spielauswahl mit erhaltener
+   Spielerliste, nicht mitten ins Spiel. */
+const SESSION_SNAPSHOT_KEY = 'saufapp_session_snapshot_v1';
+const SESSION_SNAPSHOT_SCREENS = ['players', 'gameselect'];
+const SESSION_SNAPSHOT_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6h - "derselbe Abend", keine Wochen alte Session
+
+function saveSessionSnapshot(screenName) {
+  try {
+    localStorage.setItem(SESSION_SNAPSHOT_KEY, JSON.stringify({
+      screen: screenName,
+      players: state.players,
+      savedAt: Date.now(),
+    }));
+  } catch (_) {}
+}
+
+function clearSessionSnapshot() {
+  try { localStorage.removeItem(SESSION_SNAPSHOT_KEY); } catch (_) {}
+}
+
+function loadSessionSnapshot() {
+  try {
+    const raw = localStorage.getItem(SESSION_SNAPSHOT_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.players) || !data.players.length) return null;
+    if (!SESSION_SNAPSHOT_SCREENS.includes(data.screen)) return null;
+    if (typeof data.savedAt !== 'number' || Date.now() - data.savedAt > SESSION_SNAPSHOT_MAX_AGE_MS) return null;
+    return data;
+  } catch (_) { return null; }
+}
+
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -6983,11 +7059,15 @@ function goTo(screenName, opts) {
     if (screenName === 'home') {
       renderHome();
       requestAnimationFrame(() => next.classList.add('home-ready'));
+      // Bewusster Neustart der Party-Runde ueber die Startseite -> gespeicherte
+      // Session verwerfen, damit man nicht Wochen spaeter in eine alte Spielerliste
+      // hineingerät.
+      clearSessionSnapshot();
     } else {
       document.getElementById('screen-home')?.classList.remove('home-ready');
     }
-    if (screenName === 'players') renderPlayers();
-    if (screenName === 'gameselect') renderGameSelect('all');
+    if (screenName === 'players') { renderPlayers(); saveSessionSnapshot('players'); }
+    if (screenName === 'gameselect') { renderGameSelect('all'); saveSessionSnapshot('gameselect'); }
     if (screenName === 'category-select') renderCategorySelect();
     if (screenName === 'settings') { renderSettings(); renderVoiceSettings(); renderGoogleTTSSettings(); }
     if (screenName === 'leaderboard') renderLeaderboard();
@@ -7058,10 +7138,17 @@ function playConfettiLite() {
 }
 
 function launchAppFromSplash() {
+  // Fund A-14/G: Wurde die App im Hintergrund von iOS beendet (nicht bewusst ueber die
+  // Startseite verlassen), landen wir hier bei einem kompletten Neustart mit leerem
+  // state.players - genau der Fall, den die gespeicherte Session abfangen soll.
+  const snapshot = loadSessionSnapshot();
+  const targetScreen = snapshot ? snapshot.screen : 'home';
+  if (snapshot) state.players = snapshot.players;
+
   const splash = document.getElementById('screen-splash');
-  if (!splash) { goTo('home', { instant: true }); return; }
+  if (!splash) { goTo(targetScreen, { instant: true }); return; }
   const delay = prefersReducedMotion() ? 200 : 1450;
-  setTimeout(() => goTo('home'), delay);
+  setTimeout(() => goTo(targetScreen), delay);
 }
 
 /* Stoppt Hintergrundprozesse (Timer, Mikrofon), die weiterliefen, obwohl der
@@ -7778,18 +7865,16 @@ const Categories = (() => {
 
   function startRound() {
     g.isRunning = true;
-    g.secondsLeft = ROUND_SECONDS;
     showFeedback(getComment('round_start'));
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, ROUND_SECONDS, updateTimerRing, handleTimeout);
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      updateTimerRing();
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); handleTimeout(); }
-    }, 1000);
   }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
     hideQuatschFlag();
     stopMic();
@@ -10353,23 +10438,25 @@ const StadtLandFluss = (() => {
   function currentPlayer() { return state.players[g.playerIndex]; }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
+  }
+
+  function updateTimerRing() {
+    const ring = document.getElementById('slf-timer-ring');
+    if (ring) {
+      ring.textContent = g.secondsLeft;
+      ring.classList.toggle('urgent', g.secondsLeft <= 10);
+    }
   }
 
   function startRound() {
     g.isRunning = true;
-    g.secondsLeft = ROUND_SECONDS;
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, ROUND_SECONDS, updateTimerRing, submit);
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      const ring = document.getElementById('slf-timer-ring');
-      if (ring) {
-        ring.textContent = g.secondsLeft;
-        ring.classList.toggle('urgent', g.secondsLeft <= 10);
-      }
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); submit(); }
-    }, 1000);
   }
 
   function render() {
@@ -10911,7 +10998,7 @@ const Flaggen = (() => {
   }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
   }
 
@@ -10927,16 +11014,15 @@ const Flaggen = (() => {
   function startRound() {
     const { correct, options } = pickOptions(linesFor(FLAGS));
     g.current = correct; g.options = options; g.lastCode = correct.code;
-    g.secondsLeft = TIME_LIMIT; g.isRunning = true;
+    g.isRunning = true;
     g.questionNum++;
     g.used5050 = false; g.usedAudience = false; g.usedTime = false;
     g.eliminated = {};
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, TIME_LIMIT, tickTimer, () => resolve(null));
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      tickTimer();
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); resolve(null); }
-    }, 1000);
   }
 
   function progressFilled() {
@@ -12019,25 +12105,28 @@ const Quiz = (() => {
   }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
+  }
+
+  function tickTimer() {
+    const ring = document.getElementById('quiz-timer-ring');
+    if (ring) {
+      ring.querySelector('span').textContent = g.secondsLeft;
+      ring.style.setProperty('--progress', g.secondsLeft / TIME_LIMIT);
+      ring.classList.toggle('urgent', g.secondsLeft <= 4);
+    }
   }
 
   function startRound() {
     const { entry, options } = pickQuestion(linesFor(QUESTIONS));
     g.entry = entry; g.options = options;
-    g.secondsLeft = TIME_LIMIT; g.isRunning = true;
+    g.isRunning = true;
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, TIME_LIMIT, tickTimer, () => resolve(null));
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      const ring = document.getElementById('quiz-timer-ring');
-      if (ring) {
-        ring.querySelector('span').textContent = g.secondsLeft;
-        ring.style.setProperty('--progress', g.secondsLeft / TIME_LIMIT);
-        ring.classList.toggle('urgent', g.secondsLeft <= 4);
-      }
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); resolve(null); }
-    }, 1000);
   }
 
   function render() {
@@ -12459,7 +12548,7 @@ const Fussball = (() => {
   }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
   }
 
@@ -12475,14 +12564,13 @@ const Fussball = (() => {
   function startRound() {
     const { correct, options } = pickOptions(linesFor(PLAYERS));
     g.current = correct; g.options = options; g.lastName = correct.name;
-    g.secondsLeft = TIME_LIMIT; g.isRunning = true;
+    g.isRunning = true;
     g.selectedIndex = null; g.eliminated = {}; g.hintText = null;
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, TIME_LIMIT, tickTimer, () => resolve(null));
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      tickTimer();
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); resolve(null); }
-    }, 1000);
   }
 
   function selectAnswer(i) {
@@ -12824,7 +12912,7 @@ const Aufstellung = (() => {
   }
 
   function stopTimer() {
-    if (g.timerHandle) { clearInterval(g.timerHandle); g.timerHandle = null; }
+    stopFairCountdown(g);
     g.isRunning = false;
   }
 
@@ -12841,13 +12929,12 @@ const Aufstellung = (() => {
     const { correct, options } = pickOptions(linesFor(LINEUPS));
     g.current = correct; g.options = options; g.lastMissing = correct.missing;
     g.selectedIndex = null;
-    g.secondsLeft = TIME_LIMIT; g.isRunning = true;
+    g.isRunning = true;
+    // Reihenfolge wichtig: g.secondsLeft muss VOR dem ersten render() auf den vollen
+    // Wert stehen, sonst blitzt beim Rundenwechsel kurz noch die Restzeit der letzten
+    // Runde auf, bevor der naechste Tick sie korrigiert.
+    startFairCountdown(g, TIME_LIMIT, tickTimer, () => resolve(null));
     render();
-    g.timerHandle = setInterval(() => {
-      g.secondsLeft--;
-      tickTimer();
-      if (g.secondsLeft <= 0) { clearInterval(g.timerHandle); resolve(null); }
-    }, 1000);
   }
 
   function render() {
